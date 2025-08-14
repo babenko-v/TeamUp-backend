@@ -11,3 +11,10 @@ class PlatformRoleEnum(Enum):
     RECRUITER = 'Recruiter'
     DEVELOPER_USER = 'User'
 
+class DeveloperTypeEnum(Enum):
+    BACKEND = 'Backend'
+    FRONTEND = 'Frontend'
+    FULLSTACK = 'Fullstack'
+    MANAGER = 'Manager'
+    ML_ENGINEER = 'ML Engineer'
+
