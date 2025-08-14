@@ -1,9 +1,12 @@
 import uuid
 
+
+
+
 class User:
     def __init__(self, id: uuid.UUID, user_name: str, email: str, hashed_password: str,
                  developer_type: str, avatar_url: str, linkedin_url: str, github_url: str,
-                 status_user: str):
+                 status_user: str, platform_role: str):
         self.id = id
         self.username = user_name
         self.email = email
