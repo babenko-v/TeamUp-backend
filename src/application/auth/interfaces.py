@@ -17,10 +17,12 @@ class ITokenService(ABC):
 
 class IPasswordHasher(ABC):
 
+    @staticmethod
     @abstractmethod
-    def verify_password(self, plain_password: str, hashed_password) -> bool:
+    def verify_password(plain_password: str, hashed_password) -> bool:
         pass
 
+    @staticmethod
     @abstractmethod
-    def get_password_hash(self, password: str) -> str:
+    def get_password_hash(password: str) -> str:
         pass
