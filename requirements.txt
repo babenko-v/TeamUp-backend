@@ -6,3 +6,6 @@ python-dotenv
 
 python-jose
 passlib
+
+asyncpg
+psycopg2-binary
