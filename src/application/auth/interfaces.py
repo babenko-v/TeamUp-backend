@@ -15,6 +15,11 @@ class ITokenService(ABC):
     def decode_token(self, token: str) -> Dict:
         pass
 
+    @abstractmethod
+    def get_user_id_by_refresh_token(self, token: str) -> str:
+        pass
+
+
 class IPasswordHasher(ABC):
 
     @staticmethod
