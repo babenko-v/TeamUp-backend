@@ -5,6 +5,7 @@ from fastapi import APIRouter, Response, Cookie, HTTPException, Depends
 
 from application.auth.dto import TokenResponseDTO, LoginRequestDTO
 from application.auth.service import AuthService
+from presentation.dependencies import get_auth_service
 
 auth_router = APIRouter(prefix="/v1/auth", tags=["Authentication"])
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
@@ -13,7 +14,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 def login(
     response: Response,
     login_data: LoginRequestDTO,
-    auth_service: AuthService = Depends(), # Mock - swap on DI receiving Auth Service
+    auth_service: AuthService = Depends(get_auth_service), # Mock - swap on DI receiving Auth Service
 ):
     try:
         access_token, refresh_token = auth_service.login(login_data)
@@ -41,7 +42,7 @@ def logout(response: Response):
 @auth_router.get("/reissue_token", response_model=TokenResponseDTO)
 def reissue_token(
     refresh_token: Optional[str] = Cookie(None),
-    auth_service: AuthService = ,
+    auth_service: AuthService = Depends(get_auth_service),
 ):
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token not found in cookies!")
