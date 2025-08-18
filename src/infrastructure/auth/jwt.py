@@ -35,3 +35,12 @@ class JWTService(ITokenService):
         except JWTError as JWTException:
             raise ValueError(f"Could not decode token - {JWTException}")
 
+    def get_user_id_by_refresh_token(self, refresh_token: str) -> str:
+        payload_token = self.decode_token(refresh_token)
+
+        if payload_token.get("type") != "refresh":
+            raise ValueError(f"Invalid token type: {payload_token['type']}")
+
+        return payload_token.get("sub")
+
+
