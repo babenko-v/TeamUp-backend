@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import os
 from typing import Dict
 from jose import JWTError, jwt
-from src.application.auth.interfaces import ITokenService
+from application.auth.interfaces import ITokenService
 
 SECRET_KEY = os.getenv("SECRET_KEY", "your_super_secret_key")
 ALGORITHM = os.getenv("ALGORITHM")

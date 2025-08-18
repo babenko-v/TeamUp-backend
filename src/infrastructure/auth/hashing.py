@@ -1,4 +1,4 @@
-from src.application.auth.interfaces import IPasswordHasher
+from application.auth.interfaces import IPasswordHasher
 from passlib.context import CryptContext
 
 
