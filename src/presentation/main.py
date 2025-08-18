@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 
-app = FastAPI(title="TeamUp endpoint")
+from presentation.auth.router import auth_router
+
+app = FastAPI(title="TeamUp endpoint", prefix="/api")
+
+app.include_router(auth_router)
 
 @app.get("/")
 def health_check():
