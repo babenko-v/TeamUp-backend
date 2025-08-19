@@ -1,16 +1,13 @@
 from abc import ABC, abstractmethod
 
+from application.shared.interfaces import IGenericRepository
 from domain.models import User
 
 
-class IUserRepository(ABC):
+class IUserRepository(IGenericRepository[User], ABC):
 
     @abstractmethod
     def get_user_by_email(self, email: str) -> User:
-        pass
-
-    @abstractmethod
-    def get_user_by_id(self, user_id: int) -> User:
         pass
 
     @abstractmethod
