@@ -9,3 +9,4 @@ passlib
 
 asyncpg
 psycopg2-binary
+alembic
