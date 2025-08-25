@@ -29,4 +29,23 @@ class UserRepository(IUserRepository):
         )
         return user
 
+    async def get(self) -> List[DomainUser]:
+        users = select(DBUser)
+
+        result = await self.session.execute(users)
+
+        db_users = result.scalars().all()
+
+        return [self._to_domain(db_user) for db_user in db_users]
+
+
+    async def get_by_id(self, user_id: str) -> DomainUser | None:
+        users = select(DBUser).where(DBUser.id == user_id)
+
+        result = await self.session.execute(users)
+
+        db_user = result.scalar_one_or_none()
+
+        return self._to_domain(db_user) if db_user else None
+
 
