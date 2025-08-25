@@ -80,4 +80,44 @@ class Team:
 
         del self._members[user_id_to_remove]
 
+    def assign_role_to_member(self, user_id: uuid.UUID, role_to_add: TeamRoleEnum):
+        member = self.get_member(user_id)
+        if not member:
+            raise ValueError("Member not found in the team.")
+
+        member.roles.add(role_to_add)
+        print(f"Role '{role_to_add.value}' assigned to user {user_id}.")
+
+    def revoke_role_from_member(self, user_id: uuid.UUID, role_to_remove: TeamRoleEnum):
+        member = self.get_member(user_id)
+        if not member:
+            raise ValueError("Member not found in the team.")
+
+        if role_to_remove == TeamRoleEnum.OWNER:
+            raise ValueError("The OWNER role cannot be revoked.")
+
+        if len(member.roles) == 1 and role_to_remove in member.roles:
+            raise ValueError("A member must have at least one role.")
+
+        if role_to_remove not in member.roles:
+            raise ValueError("User does not have that role.")
+
+        member.roles.remove(role_to_remove)
+        print(f"Role '{role_to_remove.value}' revoked from user {user_id}.")
+
+    def set_member_roles(self, user_id: uuid.UUID, new_roles: Set[TeamRoleEnum]):
+
+        member = self.get_member(user_id)
+        if not member:
+            raise ValueError("Member not found in the team.")
+
+        if TeamRoleEnum.OWNER in member.roles or TeamRoleEnum.OWNER in new_roles:
+            raise ValueError("The owner's role cannot be modified via this method.")
+        if not new_roles:
+            raise ValueError("A member must have at least one role.")
+
+        member.roles.clear()
+        member.roles.update(new_roles)
+        print(f"Roles for user {user_id} set to: {[r.value for r in new_roles]}")
+
 
