@@ -1,34 +1,30 @@
 import uuid
-
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, String, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-
 from infrastructure.database.session import Base
 
 
 class StatusUser(Base):
-    __tablename__ = 'status user'
+    __tablename__ = 'status_user'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
 
-    id = Column(UUID, primary_key=True, default=uuid.uuid4)
-    status_user = Column(String, nullable=False, unique=True)
-
-    user = relationship("User", back_populates="status_user")
+    users = relationship("User", back_populates="status")
 
     def __str__(self):
-        return self.status_user
-
+        return self.name
 
 class DeveloperSpecialty(Base):
-    __tablename__ = 'developer specialty'
+    __tablename__ = 'developer_specialty'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
 
-    id = Column(UUID, primary_key=True, default=uuid.uuid4)
-    developer_specialty = Column(String, nullable=False, unique=True)
-
-    user = relationship("User", back_populates="status_user")
+    users = relationship("User", back_populates="developer_specialty")
 
     def __str__(self):
-        return self.status_user
+        return self.name
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -36,13 +32,14 @@ class User(Base):
     username = Column(String(50), nullable=False, unique=True)
     hashed_password = Column(String, nullable=False)
     email = Column(String(100), nullable=False, unique=True)
-    avatar_url = Column(String(100), nullable=False, unique=True)
+    avatar_url = Column(String(255))
 
-    status_user = relationship("StatusUser", back_populates="user")
-    status_user_id = Column(UUID, ForeignKey('status_user.id'))
 
-    developer_specialty = relationship("DeveloperSpecialty", back_populates="user")
-    developer_specialty_id = Column(UUID, ForeignKey('developer_specialty.id'))
+    status_id = Column(Integer, ForeignKey('status_user.id'))
+    status = relationship("StatusUser", back_populates="users")
+
+    developer_specialty_id = Column(Integer, ForeignKey('developer_specialty.id'))
+    developer_specialty = relationship("DeveloperSpecialty", back_populates="users")
 
     def __str__(self):
         return self.username
