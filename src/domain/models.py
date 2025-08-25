@@ -8,11 +8,11 @@ from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum
 
 class User:
     def __init__(self, id: uuid.UUID, user_name: str, email: str, hashed_password: str,
-                 avatar_url: str, linkedin_url: str, github_url: str, status_user: StatusUserEnum,
-                 platform_role: PlatformRoleEnum, created_at: datetime):
+                 avatar_url: str | None, linkedin_url: str | None, github_url: str | None,
+                 status_user: StatusUserEnum, platform_role: PlatformRoleEnum, created_at: datetime):
 
         self.id = id
-        self.username = user_name
+        self.user_name = user_name
         self.email = email
         self.hashed_password = hashed_password
         self.avatar_url = avatar_url
@@ -48,14 +48,17 @@ class Team:
     def members(self) -> List[TeamMember]:
         return list(self._members.values())
 
+
     def get_member(self, member_id: uuid.UUID) -> TeamMember | None:
         return self._members.get(member_id)
+
 
     def is_owner_or_maintainer(self, user_id: uuid.UUID) -> bool:
         member = self.get_member(user_id)
         if not member:
             return False
         return TeamRoleEnum.OWNER in member.roles or TeamRoleEnum.MAINTAINER in member.roles
+
 
     def add_member(self, user_to_add: User, roles: Set[TeamRoleEnum]):
         if user_to_add.id in self._members:
@@ -69,6 +72,7 @@ class Team:
         new_member = TeamMember(user_id=user_to_add.id, roles=roles)
         self._members[user_to_add.id] = new_member
 
+
     def remove_member(self, user_id_to_remove: uuid.UUID):
         member_to_remove = self.get_member(user_id_to_remove)
 
@@ -80,6 +84,7 @@ class Team:
 
         del self._members[user_id_to_remove]
 
+
     def assign_role_to_member(self, user_id: uuid.UUID, role_to_add: TeamRoleEnum):
         member = self.get_member(user_id)
         if not member:
@@ -87,6 +92,7 @@ class Team:
 
         member.roles.add(role_to_add)
         print(f"Role '{role_to_add.value}' assigned to user {user_id}.")
+
 
     def revoke_role_from_member(self, user_id: uuid.UUID, role_to_remove: TeamRoleEnum):
         member = self.get_member(user_id)
@@ -104,6 +110,7 @@ class Team:
 
         member.roles.remove(role_to_remove)
         print(f"Role '{role_to_remove.value}' revoked from user {user_id}.")
+
 
     def set_member_roles(self, user_id: uuid.UUID, new_roles: Set[TeamRoleEnum]):
 

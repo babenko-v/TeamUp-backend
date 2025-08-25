@@ -15,12 +15,12 @@ class StatusUser(Base):
     def __str__(self):
         return self.name
 
-class DeveloperSpecialty(Base):
-    __tablename__ = 'developer_specialty'
+class PlatformRole(Base):
+    __tablename__ = 'platform_role'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
 
-    users = relationship("User", back_populates="developer_specialty")
+    users = relationship("User", back_populates="platform_role")
 
     def __str__(self):
         return self.name
@@ -29,17 +29,16 @@ class DeveloperSpecialty(Base):
 class User(Base):
     __tablename__ = 'users'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    username = Column(String(50), nullable=False, unique=True)
+    user_name = Column(String(50), nullable=False, unique=True)
     hashed_password = Column(String, nullable=False)
     email = Column(String(100), nullable=False, unique=True)
     avatar_url = Column(String(255))
 
-
     status_id = Column(Integer, ForeignKey('status_user.id'))
     status = relationship("StatusUser", back_populates="users")
 
-    developer_specialty_id = Column(Integer, ForeignKey('developer_specialty.id'))
-    developer_specialty = relationship("DeveloperSpecialty", back_populates="users")
+    platform_role_id = Column(Integer, ForeignKey('platform_role.id'))
+    platform_role = relationship("PlatformRole", back_populates="users")
 
     def __str__(self):
-        return self.username
+        return self.user_name
