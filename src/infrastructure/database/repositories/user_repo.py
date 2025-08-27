@@ -1,6 +1,7 @@
+import uuid
 from typing import List
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.users.interfaces import IUserRepository
@@ -48,4 +49,10 @@ class UserRepository(IUserRepository):
 
         return self._to_domain(db_user) if db_user else None
 
+    async def delete(self, user_id: uuid.UUID) -> None:
+        users = delete(DBUser).where(DBUser.id == user_id)
+        await self.session.execute(users)
+
+    async def update(self, updated_data: DomainUser) -> None:
+        self.session.add(updated_data)
 
