@@ -7,12 +7,12 @@ from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum
 
 
 class User:
-    def __init__(self, id: uuid.UUID, user_name: str, email: str, hashed_password: str,
+    def __init__(self, id: uuid.UUID, username: str, email: str, hashed_password: str,
                  avatar_url: str | None, linkedin_url: str | None, github_url: str | None,
                  status_user: StatusUserEnum, platform_role: PlatformRoleEnum, created_at: datetime):
 
         self.id = id
-        self.user_name = user_name
+        self.username = username
         self.email = email
         self.hashed_password = hashed_password
         self.avatar_url = avatar_url

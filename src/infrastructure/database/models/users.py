@@ -15,7 +15,7 @@ class StatusUser(Base):
     def __str__(self):
         return self.name
 
-class PlatformRole(Base):
+class PlatformRoleEnum(Base):
     __tablename__ = 'platform_role'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
@@ -29,7 +29,7 @@ class PlatformRole(Base):
 class User(Base):
     __tablename__ = 'users'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_name = Column(String(50), nullable=False, unique=True)
+    username = Column(String(50), nullable=False, unique=True)
     hashed_password = Column(String, nullable=False)
     email = Column(String(100), nullable=False, unique=True)
     avatar_url = Column(String(255))
