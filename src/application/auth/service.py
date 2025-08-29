@@ -1,6 +1,5 @@
 from application.auth.dto import LoginRequestDTO
 from application.auth.interfaces import ITokenService
-from application.shared.interfaces import IGenericRepository
 from application.users.interfaces import IUserRepository
 from infrastructure.auth.hashing import PasswordHasher
 
