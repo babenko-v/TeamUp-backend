@@ -7,7 +7,7 @@ from domain.models import User
 class IUserRepository(IGenericRepository[User], ABC):
 
     @abstractmethod
-    def get_user_by_email(self, email: str) -> User:
+    async def get_user_by_email(self, email: str) -> User:
         pass
 
     @abstractmethod

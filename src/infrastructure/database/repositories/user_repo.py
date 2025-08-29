@@ -79,7 +79,7 @@ class UserRepository(IUserRepository):
         self.session.add(updated_data)
 
 
-    async def create(self, user_data: DomainUser) -> None:
+    async def create(self, user_data: DomainUser) -> uuid.UUID:
         db_user = DBUser(
             id=user_data.id,
             username=user_data.username,
@@ -91,4 +91,6 @@ class UserRepository(IUserRepository):
         )
 
         self.session.add(db_user)
+
+        return db_user.id
 

@@ -1,4 +1,6 @@
 import uuid
+from email.policy import default
+
 from sqlalchemy import Column, String, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -32,7 +34,7 @@ class User(Base):
     username = Column(String(50), nullable=False, unique=True)
     hashed_password = Column(String, nullable=False)
     email = Column(String(100), nullable=False, unique=True)
-    avatar_url = Column(String(255))
+    avatar_url = Column(String(255), default=None, nullable=True)
 
     status_id = Column(Integer, ForeignKey('status_user.id'))
     status = relationship("StatusUser", back_populates="users")

@@ -9,6 +9,7 @@ class IGenericRepository(Generic[T], ABC):
     @abstractmethod
     async def get_by_id(self, id: uuid.UUID) -> Optional[T]:
         pass
+
     @abstractmethod
     async def get(self) -> List[T]:
         pass
