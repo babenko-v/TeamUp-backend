@@ -15,7 +15,7 @@ class IGenericRepository(Generic[T], ABC):
         pass
 
     @abstractmethod
-    async def create(self, entity: T) -> None:
+    async def add(self, entity: T) -> T:
         pass
 
     @abstractmethod

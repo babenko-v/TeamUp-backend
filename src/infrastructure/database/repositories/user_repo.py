@@ -51,24 +51,24 @@ class UserRepository(IUserRepository):
         return self._to_domain(db_user) if db_user else None
 
 
-    async def get_user_by_email(self, email: str) -> DomainUser | None:
-        users = select(DBUser).where(DBUser.email == email)
+    async def exists_by_email(self, email: str) -> bool:
+        user = select(select(DBUser.id).where(DBUser.email == email).exist())
 
-        result = await self.session.execute(users)
+        result = await self.session.execute(user)
 
-        db_user = result.scalar_one_or_none()
+        db_user = result.scalar()
 
-        return self._to_domain(db_user) if db_user else None
+        return db_user
 
 
-    async def get_user_by_username(self, username: str) -> DomainUser | None:
-        users = select(DBUser).where(DBUser.username == username)
+    async def exists_by_username(self, username: str) -> bool:
+        user = select(select(DBUser.id).where(DBUser.username == username).exist())
 
-        result = await self.session.execute(users)
+        result = await self.session.execute(user)
 
-        db_user = result.scalar_one_or_none()
+        db_user = result.scalar()
 
-        return self._to_domain(db_user) if db_user else None
+        return db_user
 
     async def delete(self, user_id: uuid.UUID) -> None:
         users = delete(DBUser).where(DBUser.id == user_id)
@@ -79,18 +79,17 @@ class UserRepository(IUserRepository):
         self.session.add(updated_data)
 
 
-    async def create(self, user_data: DomainUser) -> uuid.UUID:
+    async def add(self, user_data: DomainUser) -> DomainUser:
         db_user = DBUser(
             id=user_data.id,
             username=user_data.username,
             email=user_data.email,
             hashed_password=user_data.hashed_password,
-            avatar_url=user_data.avatar_url,
             platform_role=user_data.platform_role,
-            status=user_data.status_user
+            status=user_data.status_user.value
         )
 
         self.session.add(db_user)
 
-        return db_user.id
+        return user_data
 

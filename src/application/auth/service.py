@@ -1,8 +1,13 @@
+import uuid
+from datetime import datetime
+
 from application.auth.dto import LoginRequestDTO
 from application.auth.interfaces import ITokenService
 from application.uow.interfaces import IUnitOfWork
 from application.users.dto import UserDTO
+from domain.enum import StatusUserEnum
 from infrastructure.auth.hashing import PasswordHasher
+from domain.models import User as DomainUser
 
 
 class AuthService:
@@ -14,12 +19,32 @@ class AuthService:
         self.uow = uow
 
     async def register(self, user_data: UserDTO):
+
+        hashed_password = self.password_hasher.get_password_hash(user_data.password)
+
+
         async with self.uow as uow:
-            user_id = await uow.users.create(user_data)
+
+            if await uow.users.exists(user_data.email):
+                raise ValueError('Username already exists')  # Swap on custom exception
+
+            if await uow.users.exists_by_username(user_data.username):
+                raise ValueError('Password already exists')  # Swap on custom exception
+
+            new_user = DomainUser(
+                id=uuid.uuid4(),
+                username=user_data.username,
+                email=user_data.email,
+                hashed_password=hashed_password,
+                status_user=StatusUserEnum.ACTIVE,
+                platform_role=user_data.platform_role
+            )
+
+            created_user = await uow.users.add(new_user)
 
             await uow.commit()
 
-        token_data = {"sub": str(user_id)}
+        token_data = {"sub": str(created_user.id)}
 
         access_token = self.token_service.create_access_token(data=token_data)
         refresh_token = self.token_service.create_refresh_token(data=token_data)

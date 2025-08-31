@@ -1,7 +1,8 @@
+import datetime
 import uuid
 from email.policy import default
 
-from sqlalchemy import Column, String, ForeignKey, Integer
+from sqlalchemy import Column, String, ForeignKey, Integer, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from infrastructure.database.session import Base
@@ -41,6 +42,8 @@ class User(Base):
 
     platform_role_id = Column(Integer, ForeignKey('platform_role.id'))
     platform_role = relationship("PlatformRole", back_populates="users")
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     def __str__(self):
         return self.user_name
