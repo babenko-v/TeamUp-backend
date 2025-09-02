@@ -5,7 +5,7 @@ from email.policy import default
 from sqlalchemy import Column, String, ForeignKey, Integer, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from infrastructure.database.session import Base
+from src.infrastructure.database.session import Base
 
 
 class StatusUser(Base):

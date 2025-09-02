@@ -60,6 +60,15 @@ class UserRepository(IUserRepository):
 
         return db_user
 
+    async def get_user_by_email(self, email: str) -> DomainUser | None:
+        users = select(DBUser).where(DBUser.email == email)
+
+        result = await self.session.execute(users)
+
+        db_user = result.scalar_one_or_none()
+
+        return self._to_domain(db_user) if db_user else None
+
 
     async def exists_by_username(self, username: str) -> bool:
         user = select(select(DBUser.id).where(DBUser.username == username).exist())

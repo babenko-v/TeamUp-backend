@@ -9,6 +9,7 @@ from infrastructure.auth.jwt import JWTService
 from fastapi import Depends
 
 from infrastructure.database.uow.uow import UnitOfWork
+from infrastructure.database.session import async_session_maker
 
 
 def get_user_repo() -> Optional[IUserRepository]:
@@ -20,7 +21,7 @@ def get_token_service() -> ITokenService:
     return JWTService()
 
 def get_uow() -> IUnitOfWork:
-    return UnitOfWork()
+    return UnitOfWork(session_factory=async_session_maker)
 
 def get_auth_service(
     token_service: ITokenService = Depends(get_token_service),
