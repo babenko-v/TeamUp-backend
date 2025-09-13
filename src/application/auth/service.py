@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from application.auth.dto import LoginRequestDTO
+from application.auth.dto import LoginRequestDTO, ChangePasswordDTO
 from application.auth.interfaces import ITokenService
 from application.uow.interfaces import IUnitOfWork
 from application.users.dto import UserDTO
@@ -41,8 +41,6 @@ class AuthService:
             )
 
             created_user = await uow.users.add(new_user)
-
-            await uow.commit()
 
         token_data = {"sub": str(created_user.id)}
 
@@ -85,6 +83,26 @@ class AuthService:
         new_access_token = self.token_service.create_access_token(data=token_data)
 
         return new_access_token
+
+
+    async def change_password(self, user_id: uuid.UUID, password_data: ChangePasswordDTO):
+
+        async with self.uow:
+            user = await self.uow.users.get_by_id(user_id)
+            if not user:
+                raise ValueError("User were not found") # Change on custom Exception type
+
+            check_password = self.password_hasher.verify_password(password_data.old_password, user.hashed_password)
+
+            if not check_password:
+                raise ValueError("Incorrect old password")
+
+            new_hashed_password = self.password_hasher.get_password_hash(password_data.new_password)
+
+            user.change_password(new_hashed_password)
+
+            await self.uow.users.update(user)
+
 
 
 

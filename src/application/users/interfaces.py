@@ -15,7 +15,7 @@ class IUserRepository(IGenericRepository[User], ABC):
         pass
 
     @abstractmethod
-    def get_user_by_email(self, email: str) -> User:
+    async def get_user_by_email(self, email: str) -> User:
         pass
 
 

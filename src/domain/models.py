@@ -61,6 +61,11 @@ class User:
         if status_user is not None:
             self.status_user = status_user
 
+    def change_password(self, new_hashed_password: str):
+        if new_hashed_password == self.hashed_password:
+            raise ValueError("New password cannot be the same as the old one.")
+        self.hashed_password = new_hashed_password
+
 
 @dataclasses.dataclass(frozen=True)
 class TeamMember:
