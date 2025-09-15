@@ -84,8 +84,35 @@ class UserRepository(IUserRepository):
         await self.session.execute(users)
 
 
-    async def update(self, updated_data: DomainUser) -> None:
-        self.session.add(updated_data)
+    async def update(self, user_data: DomainUser) -> None:
+
+        db_user = await self.session.get(DBUser, user_data.id)
+
+        if not db_user:
+            raise ValueError(f"User with id {user_data.id} not found for update.")
+
+        db_user.username = user_data.username
+        db_user.email = user_data.email
+        db_user.hashed_password = user_data.hashed_password
+        db_user.avatar_url = user_data.avatar_url
+
+        db_user.social_media.github_url = user_data.github_url
+        db_user.social_media.linkedin_url = user_data.linkedin_url
+
+        if user_data.status_user:
+            db_user.status_id = user_data.status_user.value
+
+        if user_data.platform_role:
+            for platform_role in user_data.platform_role:
+                user_role_link = UserPlatformRole(
+                    platform_role_id=platform_role.value
+                )
+
+                db_user.user_platform_role.append(user_role_link)
+
+
+        self.session.add(db_user)
+
 
     async def add(self, user_data: DomainUser) -> DomainUser:
 
@@ -103,11 +130,12 @@ class UserRepository(IUserRepository):
 
 
         if user_data.platform_role:
-            user_role_link = UserPlatformRole(
-                platform_role_id=user_data.platform_role.value
-            )
+            for platform_role in user_data.platform_role:
+                user_role_link = UserPlatformRole(
+                    platform_role_id=platform_role.value
+                )
 
-            db_user.user_platform_role.append(user_role_link)
+                db_user.user_platform_role.append(user_role_link)
 
 
         self.session.add(db_user)

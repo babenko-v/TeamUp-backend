@@ -9,7 +9,7 @@ from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum
 
 class User:
     def __init__(self, id: uuid.UUID, username: str, email: str, hashed_password: str,
-                 status_user: StatusUserEnum, platform_role: PlatformRoleEnum, created_at: datetime = None,
+                 status_user: StatusUserEnum, platform_role: list[PlatformRoleEnum], created_at: datetime = None,
                  avatar_url: str | None = None, linkedin_url: str | None = None, github_url: str | None = None):
 
         self.id = id
