@@ -14,7 +14,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 def login(
     response: Response,
     login_data: LoginRequestDTO,
-    auth_service: AuthService = Depends(get_auth_service), # Mock - swap on DI receiving Auth Service
+    auth_service: AuthService = Depends(get_auth_service),
 ):
     try:
         access_token, refresh_token = auth_service.login(login_data)

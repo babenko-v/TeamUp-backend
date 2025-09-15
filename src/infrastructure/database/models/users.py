@@ -1,6 +1,5 @@
 import datetime
 import uuid
-from email.policy import default
 
 from sqlalchemy import Column, String, ForeignKey, Integer, DateTime
 from sqlalchemy.dialects.postgresql import UUID
@@ -18,7 +17,7 @@ class StatusUser(Base):
     def __str__(self):
         return self.name
 
-class PlatformRoleEnum(Base):
+class PlatformRole(Base):
     __tablename__ = 'platform_role'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
@@ -42,6 +41,8 @@ class User(Base):
 
     platform_role_id = Column(Integer, ForeignKey('platform_role.id'))
     platform_role = relationship("PlatformRole", back_populates="users")
+
+    team_member = relationship("TeamMember", back_populates="users")
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
