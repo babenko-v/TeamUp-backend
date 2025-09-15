@@ -5,9 +5,9 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.users.interfaces import IUserRepository
-from domain.enum import StatusUserEnum, PlatformRoleEnum
+
 from domain.models import User as DomainUser
-from infrastructure.database.models.users import User as DBUser
+from infrastructure.database.models.users import User as DBUser, UserPlatformRole
 
 
 class UserRepository(IUserRepository):
@@ -22,10 +22,10 @@ class UserRepository(IUserRepository):
             email=db_user.email,
             hashed_password=db_user.hashed_password,
             avatar_url=db_user.avatar_url,
-            linkedin_url=None,
-            github_url=None,
-            status_user=StatusUserEnum(db_user.status.name),
-            platform_role=PlatformRoleEnum(db_user.platform_role.name),
+            linkedin_url=db_user.social_media.linkedin_url,
+            github_url=db_user.social_media.github_url,
+            status_user=db_user.status.name,
+            platform_role=db_user.user_platform_role.platform_role.name,
             created_at=db_user.created_at,
         )
         return user
@@ -87,18 +87,31 @@ class UserRepository(IUserRepository):
     async def update(self, updated_data: DomainUser) -> None:
         self.session.add(updated_data)
 
-
     async def add(self, user_data: DomainUser) -> DomainUser:
+
         db_user = DBUser(
             id=user_data.id,
             username=user_data.username,
             email=user_data.email,
             hashed_password=user_data.hashed_password,
-            platform_role=user_data.platform_role,
-            status=user_data.status_user.value
+            avatar_url=user_data.avatar_url,
         )
 
+
+        if user_data.status_user:
+            db_user.status_id = user_data.status_user.value
+
+
+        if user_data.platform_role:
+            user_role_link = UserPlatformRole(
+                platform_role_id=user_data.platform_role.value
+            )
+
+            db_user.user_platform_role.append(user_role_link)
+
+
         self.session.add(db_user)
+
 
         return user_data
 
