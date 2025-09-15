@@ -25,11 +25,11 @@ class AuthService:
 
         async with self.uow as uow:
 
-            if await uow.users.exists(user_data.email):
-                raise ValueError('Username already exists')  # Swap on custom exception
+            if await uow.users.exists_by_email(user_data.email):
+                raise ValueError('Email already exists')  # Swap on custom exception
 
             if await uow.users.exists_by_username(user_data.username):
-                raise ValueError('Password already exists')  # Swap on custom exception
+                raise ValueError('Username already exists')  # Swap on custom exception
 
             new_user = DomainUser(
                 id=uuid.uuid4(),

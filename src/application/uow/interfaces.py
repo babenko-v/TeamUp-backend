@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 
+from application.teams.interfaces import ITeamRepository
 from application.users.interfaces import IUserRepository
 
 
 class IUnitOfWork(ABC):
     users: IUserRepository
+    teams: ITeamRepository
 
     async def __aenter__(self):
         return self

@@ -1,4 +1,5 @@
 from application.uow.interfaces import IUnitOfWork
+from infrastructure.database.repositories.team_repo import TeamRepository
 from infrastructure.database.repositories.user_repo import UserRepository
 
 
@@ -10,6 +11,7 @@ class UnitOfWork(IUnitOfWork):
         self.session = self.session_factory()
 
         self.users = UserRepository(self.session)
+        self.teams = TeamRepository(self.session)
 
         return await super().__aenter__()
 

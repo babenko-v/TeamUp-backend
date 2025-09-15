@@ -1,3 +1,4 @@
+import uuid
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -22,4 +23,9 @@ class ITeamRepository(IGenericRepository[Team], ABC):
     @abstractmethod
     async def exists_team_by_name(self, name: str) -> bool:
         pass
+
+    @abstractmethod
+    async def is_user_owner_team(self, user: uuid.UUID) -> bool:
+        pass
+
 

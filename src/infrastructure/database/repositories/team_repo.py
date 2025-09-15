@@ -5,7 +5,10 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.teams.interfaces import ITeamRepository
+from domain.enum import TeamRoleEnum
 from domain.models import Team as DomainTeam
+
+from infrastructure.database.models import TeamMember as DBTeamMember
 
 DBTeam = ... # Mock variation until create a Database model for Team entity
 
@@ -37,8 +40,8 @@ class TeamRepository(ITeamRepository):
         return self._to_domain(db_team) if db_team else None
 
 
-    async def get_team_by_name(self, teamname: str) -> Optional[DomainTeam]:
-        teams = select(DBTeam).where(DBTeam.name == teamname)
+    async def get_team_by_name(self, team_name: str) -> Optional[DomainTeam]:
+        teams = select(DBTeam).where(DBTeam.name == team_name)
 
         result = await self.session.execute(teams)
 
@@ -47,8 +50,8 @@ class TeamRepository(ITeamRepository):
         return self._to_domain(db_team) if db_team else None
 
 
-    async def exists_team_by_name(self, teamname: str) -> bool:
-        team = select(select(DBTeam.id).where(DBTeam.name == teamname).exist())
+    async def exists_team_by_name(self, team_name: str) -> bool:
+        team = select(select(DBTeam.id).where(DBTeam.name == team_name).exist())
 
         result = await self.session.execute(team)
 
@@ -64,3 +67,14 @@ class TeamRepository(ITeamRepository):
 
     async def update(self, updated_data: DomainTeam) -> None:
         self.session.add(updated_data)
+
+    async def is_user_owner_team(self, user_id: uuid.UUID) -> bool:
+        stmt = select(
+            select(DBTeamMember)
+            .where(
+                DBTeamMember.user_id == user_id,
+                DBTeamMember.role_id == TeamRoleEnum.OWNER.value
+            ).exists()
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar()
