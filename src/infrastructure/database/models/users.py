@@ -22,10 +22,11 @@ class PlatformRole(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
 
-    users = relationship("User", back_populates="platform_role")
-
     def __str__(self):
         return self.name
+
+
+
 
 
 class User(Base):
@@ -39,12 +40,48 @@ class User(Base):
     status_id = Column(Integer, ForeignKey('status_user.id'))
     status = relationship("StatusUser", back_populates="users")
 
-    platform_role_id = Column(Integer, ForeignKey('platform_role.id'))
-    platform_role = relationship("PlatformRole", back_populates="users")
-
     team_member = relationship("TeamMember", back_populates="users")
+
+    social_media = relationship("SocialMediaData", back_populates="users")
+
+    user_platform_role = relationship("UserPlatformRole", back_populates="users")
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     def __str__(self):
         return self.user_name
+
+
+class SocialMediaData(Base):
+    __tablename__ = 'social_media'
+    id = Column(Integer, primary_key=True)
+
+    github_url = Column(String, default=None, nullable=True)
+    linkedin_url = Column(String, default=None, nullable=True)
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    user = relationship("User", back_populates="social_media")
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __str__(self):
+        return not self.user.username
+
+
+class UserPlatformRole(Base):
+    __tablename__ = 'user_platform_role'
+
+    id = Column(Integer, primary_key=True)
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    user = relationship("User", back_populates="user_platform_role")
+
+    platform_role_id = Column(Integer, ForeignKey('platform_role.id'))
+    platform_role = relationship("PlatformRole", back_populates="user_platform_role")
+
+    def __str__(self):
+        return f"User - {self.user.username} Role - {self.platform_role.name}"
+
+
+
+

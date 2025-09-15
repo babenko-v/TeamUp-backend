@@ -1,8 +1,10 @@
 import datetime
 import uuid
+
+
 from sqlalchemy.dialects.postgresql import UUID
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from src.infrastructure.database.session import Base
 
@@ -23,6 +25,7 @@ class Team(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String, nullable=False, unique=True)
+    description = Column(Text)
 
     logo = Column(String, nullable=True, unique=True)
 
@@ -31,11 +34,13 @@ class Team(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     def __str__(self):
-        return self.user_name
+        return self.name
 
 
 class TeamMember(Base):
     __tablename__ = "team_members"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
 
     team_id = Column(UUID(as_uuid=True), ForeignKey('teams.id'))
     team = relationship("Team", back_populates="team_members")
@@ -47,3 +52,6 @@ class TeamMember(Base):
     role = relationship("TeamRole", back_populates="team_members")
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def __str__(self):
+        return f"Team - {self.team.name}, User - {self.user.username}, Role - {self.role.name}"
