@@ -37,7 +37,7 @@ class Team(Base):
         return self.name
 
 
-class TeamMember(Base):
+class TeamMember(Base): 
     __tablename__ = "team_members"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)

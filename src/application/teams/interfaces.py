@@ -25,7 +25,10 @@ class ITeamRepository(IGenericRepository[Team], ABC):
         pass
 
     @abstractmethod
-    async def is_user_owner_team(self, user: uuid.UUID) -> bool:
+    async def is_user_owner_any_team(self, user: uuid.UUID) -> bool:
         pass
 
+    @abstractmethod
+    async def count_teams_for_member(self, user_id: uuid.UUID) -> int:
+        pass
 

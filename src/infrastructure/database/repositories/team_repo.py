@@ -1,16 +1,15 @@
 import uuid
 from typing import List, Optional
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.teams.interfaces import ITeamRepository
 from domain.enum import TeamRoleEnum
 from domain.models import Team as DomainTeam
 
-from infrastructure.database.models import TeamMember as DBTeamMember
+from infrastructure.database.models import TeamMember as DBTeamMember, Team as DBTeam
 
-DBTeam = ... # Mock variation until create a Database model for Team entity
 
 
 class TeamRepository(ITeamRepository):
@@ -60,6 +59,12 @@ class TeamRepository(ITeamRepository):
         return db_team
 
 
+    async def count_teams_for_member(self, user_id: uuid.UUID) -> int:
+        stmt = select(func.count(DBTeamMember.team_id)).where(DBTeamMember.user_id == user_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+
     async def delete(self, team_id: uuid.UUID) -> None:
         users = delete(DBTeam).where(DBTeam.id == team_id)
         await self.session.execute(users)
@@ -68,7 +73,7 @@ class TeamRepository(ITeamRepository):
     async def update(self, updated_data: DomainTeam) -> None:
         self.session.add(updated_data)
 
-    async def is_user_owner_team(self, user_id: uuid.UUID) -> bool:
+    async def is_user_owner_any_team(self, user_id: uuid.UUID) -> bool:
         stmt = select(
             select(DBTeamMember)
             .where(
