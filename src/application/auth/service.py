@@ -18,7 +18,7 @@ class AuthService:
         self.password_hasher = PasswordHasher()
         self.uow = uow
 
-    async def register(self, user_data: UserDTO):
+    async def register(self, user_data:  UserDTO):
 
         hashed_password = self.password_hasher.get_password_hash(user_data.password)
 

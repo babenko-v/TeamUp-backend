@@ -1,14 +1,45 @@
 import uuid
+from multiprocessing.util import is_exiting
 
+from application.teams.dto import TeamDTO
 from application.uow.interfaces import IUnitOfWork
 from domain.enum import TeamRoleEnum
-from domain.models import User as DomainUser
+from domain.models import User as DomainUser, Team
 
 
 class TeamService:
     def __init__(self, uow: IUnitOfWork):
         self.uow = uow
-        self.MAX_AMOUNT_OF_TEAMS = 5
+        self.MAX_AMOUNT_OF_TEAMS = 3
+
+    async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> Team:
+
+        async with self.uow:
+            is_exiting_team_name = await self.uow.teams.exists_team_by_name(team_data.name)
+
+            if is_exiting_team_name:
+                raise ValueError("Team with this name already exists")
+
+            count_team_membership_user = await self.uow.teams.count_teams_for_member(current_user.id)
+            if count_team_membership_user >= self.MAX_AMOUNT_OF_TEAMS:
+                raise ValueError(f"User cannot be a member of more than {self.MAX_AMOUNT_OF_TEAMS} teams.")
+
+            new_team = Team(
+                id=uuid.uuid4(),
+                name=team_data.name,
+                description=team_data.description,
+                logo=team_data.logo,
+                owner=current_user)
+
+            await self.uow.teams.add(new_team)
+
+            return new_team
+
+
+
+
+
+
 
     async def add_member(self, user_id_to_add: uuid.UUID, roles_new_user: set[TeamRoleEnum],
                          current_user_id: uuid.UUID, team_id: uuid.UUID):
