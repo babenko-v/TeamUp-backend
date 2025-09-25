@@ -3,10 +3,11 @@ from typing import List, Optional
 
 from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from application.teams.interfaces import ITeamRepository
 from domain.enum import TeamRoleEnum
-from domain.models import Team as DomainTeam
+from domain.models import Team as DomainTeam, TeamMember as DomainTeamMember
 
 from infrastructure.database.models import TeamMember as DBTeamMember, Team as DBTeam
 
@@ -16,11 +17,28 @@ class TeamRepository(ITeamRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    def _to_domain(self, db_team: DomainTeam) -> DomainTeam:
-        ...
+    def _to_domain(self, db_team: DBTeam) -> DomainTeam:
+        domain_members = {
+            db_member.user_id: DomainTeamMember(
+                db_member.user_id,
+                db_member.roles,
+            )
+            for db_member in db_team.team_member
+        }
+
+        domain_team = DomainTeam.__reconstitute(
+            id=db_team.id,
+            name=db_team.name,
+            description=db_team.description,
+            logo=db_team.logo,
+            members=domain_members
+        )
+
+        return domain_team
 
     async def get(self) -> List[DomainTeam]:
-        teams = select(DBTeam)
+        teams = (select(DBTeam)
+                 .options(selectinload(DBTeam.team_member)))
 
         result = await self.session.execute(teams)
 
@@ -30,7 +48,9 @@ class TeamRepository(ITeamRepository):
 
 
     async def get_by_id(self, team_id: str) -> Optional[DomainTeam]:
-        teams = select(DBTeam).where(DBTeam.id == team_id)
+        teams = (select(DBTeam)
+                 .where(DBTeam.id == team_id)
+                 .options(selectinload(DBTeam.team_member)))
 
         result = await self.session.execute(teams)
 
@@ -40,7 +60,9 @@ class TeamRepository(ITeamRepository):
 
 
     async def get_team_by_name(self, team_name: str) -> Optional[DomainTeam]:
-        teams = select(DBTeam).where(DBTeam.name == team_name)
+        teams = (select(DBTeam)
+                 .where(DBTeam.name == team_name)
+                 .options(selectinload(DBTeam.team_member)))
 
         result = await self.session.execute(teams)
 

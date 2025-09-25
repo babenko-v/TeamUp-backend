@@ -15,8 +15,8 @@ class TeamService:
     async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> DomainTeam:
 
         async with self.uow:
-            is_exiting_team_name = await self.uow.teams.exists_team_by_name (team_data.name)
 
+            is_exiting_team_name = await self.uow.teams.exists_team_by_name (team_data.name)
             if is_exiting_team_name:
                 raise ValueError("Team with this name already exists")
 
@@ -29,7 +29,7 @@ class TeamService:
                 name=team_data.name,
                 description=team_data.description,
                 logo=team_data.logo,
-                owner=current_user)
+                owner_id=current_user.id)
 
             await self.uow.teams.add(new_team)
 

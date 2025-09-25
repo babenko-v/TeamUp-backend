@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Set, Dict, List
 
+from infrastructure.database.models import Team
 from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum
 
 
@@ -74,15 +75,31 @@ class TeamMember:
 
 
 class Team:
-    def __init__(self, id: uuid.UUID, name: str, description: str, logo: str, owner: User):
+    def __init__(self, id: uuid.UUID, name: str, description: str, logo: str, owner_id: uuid.UUID):
         self.id = id
         self.name = name
         self.description = description
         self.logo = logo
 
         self._members: Dict[uuid.UUID, TeamMember] = {
-            owner.id: TeamMember(user_id=owner.id, roles={TeamRoleEnum.OWNER})
+            owner_id: TeamMember(user_id=owner_id, roles={TeamRoleEnum.OWNER})
         }
+
+
+    @classmethod
+    def __reconstitute(cls, id: uuid.UUID, name: str, description: str, logo: str,
+                       members: Dict[uuid.UUID, TeamMember]) -> Team:
+
+        instance = cls.__new__(cls)
+
+        instance.id = id
+        instance.name = name
+        instance.description = description
+        instance.logo = logo
+        instance._members = members
+
+        return instance
+
 
     @property
     def members(self) -> List[TeamMember]:
