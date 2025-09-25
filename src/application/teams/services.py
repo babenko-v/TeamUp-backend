@@ -1,10 +1,9 @@
 import uuid
-from multiprocessing.util import is_exiting
 
-from application.teams.dto import TeamDTO
+from application.teams.dto import TeamDTO, UpdateTeamDTO
 from application.uow.interfaces import IUnitOfWork
 from domain.enum import TeamRoleEnum
-from domain.models import User as DomainUser, Team
+from domain.models import User as DomainUser, Team as DomainTeam
 
 
 class TeamService:
@@ -12,10 +11,11 @@ class TeamService:
         self.uow = uow
         self.MAX_AMOUNT_OF_TEAMS = 3
 
-    async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> Team:
+
+    async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> DomainTeam:
 
         async with self.uow:
-            is_exiting_team_name = await self.uow.teams.exists_team_by_name(team_data.name)
+            is_exiting_team_name = await self.uow.teams.exists_team_by_name (team_data.name)
 
             if is_exiting_team_name:
                 raise ValueError("Team with this name already exists")
@@ -24,7 +24,7 @@ class TeamService:
             if count_team_membership_user >= self.MAX_AMOUNT_OF_TEAMS:
                 raise ValueError(f"User cannot be a member of more than {self.MAX_AMOUNT_OF_TEAMS} teams.")
 
-            new_team = Team(
+            new_team = DomainTeam(
                 id=uuid.uuid4(),
                 name=team_data.name,
                 description=team_data.description,
@@ -36,13 +36,35 @@ class TeamService:
             return new_team
 
 
+    async def update_team(self, current_user: DomainUser, team_id:uuid.UUID,
+                          team_data_to_update: UpdateTeamDTO) -> DomainTeam:
+        async with self.uow:
 
+            team = await self.uow.teams.get_by_id(team_id)
+            if team is None:
+                raise ValueError("Team not found")
 
+            has_access_to_update = team.is_owner_or_maintainer(current_user.id)
+            if not has_access_to_update:
+                raise ValueError('User have bot enough permission to update data to team')
 
+            updated_team_data = team_data_to_update.model_dump(exclude_unset=True)
+
+            if updated_team_data.name:
+
+                is_existing_team_name = await self.uow.teams.exists_team_by_name(updated_team_data.name)
+                if is_existing_team_name:
+                    raise ValueError(f"Team with this name - {updated_team_data.name} already exists")
+
+            team.update(**updated_team_data)
+
+            await self.uow.teams.update(updated_team_data)
+
+            return team
 
 
     async def add_member(self, user_id_to_add: uuid.UUID, roles_new_user: set[TeamRoleEnum],
-                         current_user_id: uuid.UUID, team_id: uuid.UUID):
+                         current_user: DomainUser, team_id: uuid.UUID):
 
         async with self.uow:
             team = await self.uow.teams.get_by_id(team_id)
@@ -53,7 +75,7 @@ class TeamService:
             if user_to_add is None:
                 raise ValueError('User to add not found')
 
-            if not team.is_owner_or_maintainer(current_user_id):
+            if not team.is_owner_or_maintainer(current_user.id):
                 raise ValueError('User have bot enough permission to add to team')
 
             count_team_membership_user = await self.uow.teams.count_teams_for_member(user_id_to_add)
@@ -83,15 +105,3 @@ class TeamService:
             team.remove_member(user_id_to_remove)
 
             await self.uow.teams.update(team)
-
-
-
-
-
-
-
-
-
-
-
-

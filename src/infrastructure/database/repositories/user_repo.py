@@ -84,7 +84,7 @@ class UserRepository(IUserRepository):
         await self.session.execute(users)
 
 
-    async def update(self, user_data: DomainUser) -> None:
+    async def update(self, user_data: DomainUser) -> DomainUser:
 
         db_user = await self.session.get(DBUser, user_data.id)
 
@@ -112,6 +112,8 @@ class UserRepository(IUserRepository):
 
 
         self.session.add(db_user)
+
+        return user_data
 
 
     async def add(self, user_data: DomainUser) -> DomainUser:

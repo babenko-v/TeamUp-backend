@@ -11,7 +11,7 @@ class IUserRepository(IGenericRepository[User], ABC):
         pass
 
     @abstractmethod
-    def exists_by_username(self, username: str) -> User:
+    async def exists_by_username(self, username: str) -> User:
         pass
 
     @abstractmethod

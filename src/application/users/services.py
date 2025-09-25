@@ -1,26 +1,45 @@
 import uuid
+from multiprocessing.util import is_exiting
 
 from application.uow.interfaces import IUnitOfWork
 from application.users.dto import UserUpdateDTO
+
+from domain.models import User as DomainUser
 
 
 class UserService:
     def __init__(self, uow: IUnitOfWork):
         self.uow = uow
 
-    async def update_user(self, user_id: uuid.UUID, user_data_to_update: UserUpdateDTO):
+    async def update_user(self, current_user: DomainUser, user_data_to_update: UserUpdateDTO) -> DomainUser:
         async with self.uow:
 
-            user = await self.uow.users.get_by_id(user_id)
+            user = await self.uow.users.get_by_id(current_user.id)
 
             if user is None:
-                raise ValueError(f"User {user_id} not found")
+                raise ValueError(f"User {current_user.id} not found")
 
             updated_user_data = user_data_to_update.model_dump(exclude_unset=True)
+
+            if updated_user_data.username:
+                is_exist_username = await self.uow.users.exists_by_username(updated_user_data.username)
+
+                if is_exist_username:
+                    raise ValueError(f"User with name {updated_user_data.username} already exists")
+
+            if updated_user_data.email:
+                is_exist_email = await self.uow.users.exists_by_email(updated_user_data.email)
+
+                if is_exist_email:
+                    raise ValueError(f"User with email {updated_user_data.username} already exists")
+
 
             user.update(**updated_user_data)
 
             await self.uow.users.update(user)
+
+            return user
+
 
 
     async def delete_user(self, user_id_to_delete: uuid.UUID, current_user_id: uuid.UUID):

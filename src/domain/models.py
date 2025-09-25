@@ -92,6 +92,17 @@ class Team:
     def get_member(self, member_id: uuid.UUID) -> TeamMember | None:
         return self._members.get(member_id)
 
+    def update(self, name: str | None, description: str | None, logo: str | None):
+
+        if name is not None:
+            self.name = name
+
+        if description is not None:
+            self.description = description
+
+        if logo is not None:
+            self.logo = logo # Add logic to check logo using regex pattern
+
 
     def is_owner_or_maintainer(self, user_id: uuid.UUID) -> bool:
         member = self.get_member(user_id)
@@ -158,7 +169,7 @@ class Team:
         if not member:
             raise ValueError("Member not found in the team.")
 
-        if TeamRoleEnum.OWNER in member.roles or TeamRoleEnum.OWNER in new_roles:
+        if TeamRoleEnum.OWNER in new_roles:
             raise ValueError("The owner's role cannot be modified via this method.")
         if not new_roles:
             raise ValueError("A member must have at least one role.")
