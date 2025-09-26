@@ -41,7 +41,6 @@ class UserService:
             return user
 
 
-
     async def delete_user(self, user_id_to_delete: uuid.UUID, current_user_id: uuid.UUID):
 
         if user_id_to_delete != current_user_id:

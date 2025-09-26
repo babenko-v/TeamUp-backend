@@ -100,6 +100,12 @@ class Team:
 
         return instance
 
+    @property
+    def owner_id(self) -> uuid.UUID | None:
+        for user_id, team_member in self._members.items():
+            if TeamRoleEnum.OWNER in team_member.roles:
+                return user_id
+        return None # Should not happen
 
     @property
     def members(self) -> List[TeamMember]:
