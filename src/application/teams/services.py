@@ -29,7 +29,8 @@ class TeamService:
                 name=team_data.name,
                 description=team_data.description,
                 logo=team_data.logo,
-                owner_id=current_user.id)
+                owner_id=current_user.id
+            )
 
             await self.uow.teams.add(new_team)
 
@@ -61,6 +62,23 @@ class TeamService:
             await self.uow.teams.update(updated_team_data)
 
             return team
+
+
+    async def delete_team(self, current_user: DomainUser, team_id: uuid.UUID):
+
+        async with self.uow:
+            team = await self.uow.teams.get_by_id(team_id)
+            if team is None:
+                raise ValueError("Team not found")
+
+            owner_id = team.owner_id
+
+            if owner_id != current_user.id:
+                raise ValueError('User has bot enough permission to delete data to team')
+
+            # Add logic to change status project on Freeze or smt like that using domain events
+
+            await self.uow.teams.delete(team_id)
 
 
     async def add_member(self, user_id_to_add: uuid.UUID, roles_new_user: set[TeamRoleEnum],

@@ -47,8 +47,8 @@ class UserService:
             raise ValueError("You can only delete your own account")
 
         async with self.uow:
-            is_owner = self.uow.teams.is_user_owner_any_team(user_id_to_delete)
 
+            is_owner = self.uow.teams.is_user_owner_any_team(user_id_to_delete)
             if is_owner:
                 raise ValueError("Cannot delete a user who is an owner of a team.")
 
