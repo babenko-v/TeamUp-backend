@@ -96,8 +96,38 @@ class TeamRepository(ITeamRepository):
         await self.session.execute(stmt_teams)
 
 
-    async def update(self, updated_data: DomainTeam) -> None:
-        self.session.add(updated_data)
+    async def update(self, team_data: DomainTeam) -> None:
+        db_team = await self.session.get(DBTeam, team_data.id)
+
+        if not db_team:
+            raise ValueError(f"Team with id {team_data.id} does not exist")
+
+        db_team.name = team_data.name
+        db_team.description = team_data.description
+        db_team.logo = team_data.logo
+
+        db_members_map = {member.user_id: member for member in db_team.team_member}
+
+        domain_members_map = {member.user_id: member for member in team_data.members}
+
+        new_db_members = []
+        for user_id, domain_member in domain_members_map.items():
+            db_member = db_members_map.get(user_id)
+            if db_member is None:
+                new_db_members.append(
+                    DBTeamMember(
+                        team_id=db_team.id,
+                        user_id=domain_member.user_id,
+                        role_id=list(domain_member.roles)[0].value
+                    )
+                )
+            else:
+                current_role_id = list(domain_member.roles)[0].value
+                if db_member.role_id != current_role_id:
+                    db_member.role_id = current_role_id
+                new_db_members.append(db_member)
+
+        db_team.team_member = new_db_members
 
 
     async def is_user_owner_any_team(self, user_id: uuid.UUID) -> bool:
