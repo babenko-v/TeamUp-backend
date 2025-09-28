@@ -1,6 +1,6 @@
 import uuid
 
-from application.teams.dto import TeamDTO, UpdateTeamDTO
+from application.teams.dto import TeamDTO, UpdateTeamDTO, AssignRoleDTO
 from application.uow.interfaces import IUnitOfWork
 from domain.enum import TeamRoleEnum
 from domain.models import User as DomainUser, Team as DomainTeam
@@ -11,12 +11,25 @@ class TeamService:
         self.uow = uow
         self.MAX_AMOUNT_OF_TEAMS = 3
 
+    # Think about moving shared logic in separate class(module)
+    async def _receive_team_and_check_permissions(self, team_id: uuid.UUID,
+                                                  current_user: DomainUser):
+        async with self.uow:
+
+            team = await self.uow.teams.get_by_id(team_id)
+            if team is None:
+                raise ValueError("Team not found")
+
+            if not team.is_owner_or_maintainer(current_user.id):
+                raise ValueError('User have bot enough permission to add to team')
+
+            return team
+
 
     async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> DomainTeam:
 
         async with self.uow:
-
-            is_exiting_team_name = await self.uow.teams.exists_team_by_name (team_data.name)
+            is_exiting_team_name = await self.uow.teams.exists_team_by_name(team_data.name)
             if is_exiting_team_name:
                 raise ValueError("Team with this name already exists")
 
@@ -39,8 +52,8 @@ class TeamService:
 
     async def update_team(self, current_user: DomainUser, team_id:uuid.UUID,
                           team_data_to_update: UpdateTeamDTO) -> DomainTeam:
-        async with self.uow:
 
+        async with self.uow:
             team = await self.uow.teams.get_by_id(team_id)
             if team is None:
                 raise ValueError("Team not found")
@@ -123,3 +136,34 @@ class TeamService:
             team.remove_member(user_id_to_remove)
 
             await self.uow.teams.update(team)
+
+
+    async def assign_role_to_team_member(self, team_id: uuid.UUID, user_data: AssignRoleDTO, current_user: DomainUser):
+        async with self.uow:
+
+            team = await self._receive_team_and_check_permissions(team_id, current_user)
+
+            team.assign_role_to_member(user_data.user_id, user_data.role)
+
+            await self.uow.teams.update(team)
+
+
+    async def revoke_role_from_team_member(self, team_id: uuid.UUID, user_data: AssignRoleDTO, current_user: DomainUser):
+        async with self.uow:
+
+            team = await self._receive_team_and_check_permissions(team_id, current_user)
+
+            team.revoke_role_from_member(user_data.user_id, user_data.role)
+
+            await self.uow.teams.update(team)
+
+
+    async def set_roles_to_team_member(self, team_id: uuid.UUID, user_data: AssignRoleDTO, current_user: DomainUser):
+        async with self.uow:
+
+            team = await self._receive_team_and_check_permissions(team_id, current_user)
+
+            team.set_member_roles(user_data.user_id, user_data.role)
+
+            await self.uow.teams.update(team)
+
