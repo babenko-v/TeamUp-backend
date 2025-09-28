@@ -32,9 +32,9 @@ class UserRepository(IUserRepository):
 
 
     async def get(self) -> List[DomainUser]:
-        users = select(DBUser)
+        stmt_users = select(DBUser)
 
-        result = await self.session.execute(users)
+        result = await self.session.execute(stmt_users)
 
         db_users = result.scalars().all()
 
@@ -42,9 +42,9 @@ class UserRepository(IUserRepository):
 
 
     async def get_by_id(self, user_id: str) -> DomainUser | None:
-        users = select(DBUser).where(DBUser.id == user_id)
+        stmt_users = select(DBUser).where(DBUser.id == user_id)
 
-        result = await self.session.execute(users)
+        result = await self.session.execute(stmt_users)
 
         db_user = result.scalar_one_or_none()
 
@@ -52,18 +52,19 @@ class UserRepository(IUserRepository):
 
 
     async def exists_by_email(self, email: str) -> bool:
-        user = select(select(DBUser.id).where(DBUser.email == email).exist())
+        stmt_users = select(select(DBUser.id).where(DBUser.email == email).exist())
 
-        result = await self.session.execute(user)
+        result = await self.session.execute(stmt_users)
 
         db_user = result.scalar()
 
         return db_user
 
-    async def get_user_by_email(self, email: str) -> DomainUser | None:
-        users = select(DBUser).where(DBUser.email == email)
 
-        result = await self.session.execute(users)
+    async def get_user_by_email(self, email: str) -> DomainUser | None:
+        stmt_users = select(DBUser).where(DBUser.email == email)
+
+        result = await self.session.execute(stmt_users)
 
         db_user = result.scalar_one_or_none()
 
@@ -71,17 +72,19 @@ class UserRepository(IUserRepository):
 
 
     async def exists_by_username(self, username: str) -> bool:
-        user = select(select(DBUser.id).where(DBUser.username == username).exist())
+        stmt_users = select(select(DBUser.id).where(DBUser.username == username).exist())
 
-        result = await self.session.execute(user)
+        result = await self.session.execute(stmt_users)
 
         db_user = result.scalar()
 
         return db_user
 
+
     async def delete(self, user_id: uuid.UUID) -> None:
-        users = delete(DBUser).where(DBUser.id == user_id)
-        await self.session.execute(users)
+        stmt_users = delete(DBUser).where(DBUser.id == user_id)
+
+        await self.session.execute(stmt_users)
 
 
     async def update(self, user_data: DomainUser) -> DomainUser:
@@ -141,7 +144,6 @@ class UserRepository(IUserRepository):
 
 
         self.session.add(db_user)
-
 
         return user_data
 

@@ -12,7 +12,6 @@ from domain.models import Team as DomainTeam, TeamMember as DomainTeamMember
 from infrastructure.database.models import TeamMember as DBTeamMember, Team as DBTeam
 
 
-
 class TeamRepository(ITeamRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -36,11 +35,12 @@ class TeamRepository(ITeamRepository):
 
         return domain_team
 
+
     async def get(self) -> List[DomainTeam]:
-        teams = (select(DBTeam)
+        stmt_teams = (select(DBTeam)
                  .options(selectinload(DBTeam.team_member)))
 
-        result = await self.session.execute(teams)
+        result = await self.session.execute(stmt_teams)
 
         db_teams = result.scalars().all()
 
@@ -48,11 +48,11 @@ class TeamRepository(ITeamRepository):
 
 
     async def get_by_id(self, team_id: str) -> Optional[DomainTeam]:
-        teams = (select(DBTeam)
+        stmt_teams = (select(DBTeam)
                  .where(DBTeam.id == team_id)
                  .options(selectinload(DBTeam.team_member)))
 
-        result = await self.session.execute(teams)
+        result = await self.session.execute(stmt_teams)
 
         db_team = result.scalar_one_or_none()
 
@@ -60,11 +60,11 @@ class TeamRepository(ITeamRepository):
 
 
     async def get_team_by_name(self, team_name: str) -> Optional[DomainTeam]:
-        teams = (select(DBTeam)
+        stmt_teams = (select(DBTeam)
                  .where(DBTeam.name == team_name)
                  .options(selectinload(DBTeam.team_member)))
 
-        result = await self.session.execute(teams)
+        result = await self.session.execute(stmt_teams)
 
         db_team = result.scalar_one_or_none()
 
@@ -72,9 +72,10 @@ class TeamRepository(ITeamRepository):
 
 
     async def exists_team_by_name(self, team_name: str) -> bool:
-        team = select(select(DBTeam.id).where(DBTeam.name == team_name).exist())
+        stmt_teams = select(select(DBTeam.id)
+                      .where(DBTeam.name == team_name).exist())
 
-        result = await self.session.execute(team)
+        result = await self.session.execute(stmt_teams)
 
         db_team = result.scalar()
 
@@ -82,26 +83,31 @@ class TeamRepository(ITeamRepository):
 
 
     async def count_teams_for_member(self, user_id: uuid.UUID) -> int:
-        stmt = select(func.count(DBTeamMember.team_id)).where(DBTeamMember.user_id == user_id)
-        result = await self.session.execute(stmt)
+        stmt_teams = (select(func.count(DBTeamMember.team_id))
+                .where(DBTeamMember.user_id == user_id))
+        result = await self.session.execute(stmt_teams)
+
         return result.scalar_one()
 
 
     async def delete(self, team_id: uuid.UUID) -> None:
-        users = delete(DBTeam).where(DBTeam.id == team_id)
-        await self.session.execute(users)
+        stmt_teams = delete(DBTeam).where(DBTeam.id == team_id)
+
+        await self.session.execute(stmt_teams)
 
 
     async def update(self, updated_data: DomainTeam) -> None:
         self.session.add(updated_data)
 
+
     async def is_user_owner_any_team(self, user_id: uuid.UUID) -> bool:
-        stmt = select(
+        stmt_teams = select(
             select(DBTeamMember)
             .where(
                 DBTeamMember.user_id == user_id,
                 DBTeamMember.role_id == TeamRoleEnum.OWNER.value
             ).exists()
         )
-        result = await self.session.execute(stmt)
+        result = await self.session.execute(stmt_teams)
+
         return result.scalar()
