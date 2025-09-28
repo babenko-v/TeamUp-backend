@@ -7,13 +7,37 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from application.users.interfaces import IUserRepository
 
 from domain.models import User as DomainUser
-from infrastructure.database.models.users import User as DBUser, UserPlatformRole
+from infrastructure.database.models.users import User as DBUser, UserPlatformRole, SocialMediaData
 
 
 class UserRepository(IUserRepository):
 
     def __init__(self, session: AsyncSession):
         self.session = session
+
+    #
+    def __mapper_db_user_to_domain(self, db_user: DBUser, domain_user: DomainUser):
+        db_user.username = domain_user.username
+        db_user.email = domain_user.email
+        db_user.hashed_password = domain_user.hashed_password
+        db_user.avatar_url = domain_user.avatar_url
+
+        if domain_user.status_user:
+            db_user.status_id = domain_user.status_user.value
+
+        if domain_user.platform_role:
+            new_roles = [
+                UserPlatformRole(platform_role_id=role.value)
+                for role in domain_user.platform_role
+            ]
+            db_user.user_platform_role = new_roles
+
+
+        if not db_user.social_media:
+            db_user.social_media = SocialMediaData()
+        db_user.social_media.github_url = domain_user.github_url
+        db_user.social_media.linkedin_url = domain_user.linkedin_url
+
 
     def _to_domain(self, db_user: DBUser) -> DomainUser:
         user = DomainUser(
@@ -88,60 +112,22 @@ class UserRepository(IUserRepository):
 
 
     async def update(self, user_data: DomainUser) -> DomainUser:
-
         db_user = await self.session.get(DBUser, user_data.id)
 
         if not db_user:
             raise ValueError(f"User with id {user_data.id} not found for update.")
 
-        db_user.username = user_data.username
-        db_user.email = user_data.email
-        db_user.hashed_password = user_data.hashed_password
-        db_user.avatar_url = user_data.avatar_url
-
-        db_user.social_media.github_url = user_data.github_url
-        db_user.social_media.linkedin_url = user_data.linkedin_url
-
-        if user_data.status_user:
-            db_user.status_id = user_data.status_user.value
-
-        if user_data.platform_role:
-            for platform_role in user_data.platform_role:
-                user_role_link = UserPlatformRole(
-                    platform_role_id=platform_role.value
-                )
-
-                db_user.user_platform_role.append(user_role_link)
-
-
-        self.session.add(db_user)
+        self.__mapper_db_user_to_domain(db_user, db_user)
 
         return user_data
 
 
     async def add(self, user_data: DomainUser) -> DomainUser:
-
         db_user = DBUser(
             id=user_data.id,
-            username=user_data.username,
-            email=user_data.email,
-            hashed_password=user_data.hashed_password,
-            avatar_url=user_data.avatar_url,
         )
 
-
-        if user_data.status_user:
-            db_user.status_id = user_data.status_user.value
-
-
-        if user_data.platform_role:
-            for platform_role in user_data.platform_role:
-                user_role_link = UserPlatformRole(
-                    platform_role_id=platform_role.value
-                )
-
-                db_user.user_platform_role.append(user_role_link)
-
+        self.__mapper_db_user_to_domain(db_user, user_data)
 
         self.session.add(db_user)
 
