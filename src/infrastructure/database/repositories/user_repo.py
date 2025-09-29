@@ -39,6 +39,7 @@ class UserRepository(IUserRepository):
         db_user.social_media.linkedin_url = domain_user.linkedin_url
 
 
+
     def _to_domain(self, db_user: DBUser) -> DomainUser:
         user = DomainUser(
             id=db_user.id,

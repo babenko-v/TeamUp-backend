@@ -3,18 +3,10 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from application.shared.interfaces import IGenericRepository
-from domain.models import Team, TeamMember
+from domain.models import Team
 
 
 class ITeamRepository(IGenericRepository[Team], ABC):
-
-    @abstractmethod
-    async def add_member(self, member: TeamMember) -> TeamMember | None:
-        pass
-
-    @abstractmethod
-    async def remove_member(self, member: TeamMember) -> TeamMember | None:
-        pass
 
     @abstractmethod
     async def get_team_by_name(self, name: str) -> Optional[Team]:

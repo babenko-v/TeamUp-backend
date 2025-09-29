@@ -24,6 +24,7 @@ class TeamService:
                 raise ValueError('User have bot enough permission to add to team')
 
             return team
+        
 
 
     async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> DomainTeam:

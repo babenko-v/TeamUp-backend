@@ -71,23 +71,27 @@ class TeamRepository(ITeamRepository):
         return self._to_domain(db_team) if db_team else None
 
 
-    async def exists_team_by_name(self, team_name: str) -> bool:
-        stmt_teams = select(select(DBTeam.id)
-                      .where(DBTeam.name == team_name).exist())
+    async def add(self, team: DomainTeam) -> DomainTeam:
+        db_team = DBTeam(
+            id=team.id,
+            name=team.name,
+            description=team.description,
+            logo=team.logo,
+        )
 
-        result = await self.session.execute(stmt_teams)
+        db_team_members = [
+                DBTeamMember(
+                team_id=db_team.id,
+                user_id=team.owner_id,
+                role_id=TeamRoleEnum.OWNER.value,
+            )
+        ]
 
-        db_team = result.scalar()
+        db_team.team_member = db_team_members
+
+        self.session.add(db_team)
 
         return db_team
-
-
-    async def count_teams_for_member(self, user_id: uuid.UUID) -> int:
-        stmt_teams = (select(func.count(DBTeamMember.team_id))
-                .where(DBTeamMember.user_id == user_id))
-        result = await self.session.execute(stmt_teams)
-
-        return result.scalar_one()
 
 
     async def delete(self, team_id: uuid.UUID) -> None:
@@ -141,3 +145,22 @@ class TeamRepository(ITeamRepository):
         result = await self.session.execute(stmt_teams)
 
         return result.scalar()
+
+
+    async def exists_team_by_name(self, team_name: str) -> bool:
+        stmt_teams = select(select(DBTeam.id)
+                      .where(DBTeam.name == team_name).exist())
+
+        result = await self.session.execute(stmt_teams)
+
+        db_team = result.scalar()
+
+        return db_team
+
+
+    async def count_teams_for_member(self, user_id: uuid.UUID) -> int:
+        stmt_teams = (select(func.count(DBTeamMember.team_id))
+                .where(DBTeamMember.user_id == user_id))
+        result = await self.session.execute(stmt_teams)
+
+        return result.scalar_one()
