@@ -1,21 +1,21 @@
 import uuid
-from datetime import datetime
 
 from application.auth.dto import LoginRequestDTO, ChangePasswordDTO
-from application.auth.interfaces import ITokenService
+from application.auth.interfaces import ITokenService, IPasswordHasher
 from application.uow.interfaces import IUnitOfWork
-from application.users.dto import UserDTO
-from domain.enum import StatusUserEnum
+from application.users.dto import UserDTO, UserCreatedDTO
+from application.users.interfaces import IUserService
 from infrastructure.auth.hashing import PasswordHasher
-from domain.models import User as DomainUser
 
 
 class AuthService:
 
-    def __init__(self, token_service: ITokenService, uow: IUnitOfWork):
+    def __init__(self, token_service: ITokenService, user_service: IUserService,
+                 password_hasher: IPasswordHasher, uow: IUnitOfWork):
 
         self.token_service = token_service
-        self.password_hasher = PasswordHasher()
+        self.password_hasher = password_hasher
+        self.user_service = user_service
         self.uow = uow
 
     async def register(self, user_data:  UserDTO):
@@ -23,32 +23,18 @@ class AuthService:
         hashed_password = self.password_hasher.get_password_hash(user_data.password)
 
 
-        async with self.uow as uow:
+        new_user = UserCreatedDTO(
+            hashed_password=hashed_password,
+            **user_data.model_dump(exclude_unset=True)
+        )
 
-            if await uow.users.exists_by_email(user_data.email):
-                raise ValueError('Email already exists')  # Swap on custom exception
-
-            if await uow.users.exists_by_username(user_data.username):
-                raise ValueError('Username already exists')  # Swap on custom exception
-
-            new_user = DomainUser(
-                id=uuid.uuid4(),
-                username=user_data.username,
-                email=user_data.email,
-                hashed_password=hashed_password,
-                status_user=StatusUserEnum.ACTIVE,
-                platform_role=user_data.platform_role
-            )
-
-            created_user = await uow.users.add(new_user)
+        created_user = await self.user_service.add_user(new_user)
 
         token_data = {"sub": str(created_user.id)}
-
         access_token = self.token_service.create_access_token(data=token_data)
         refresh_token = self.token_service.create_refresh_token(data=token_data)
 
         return access_token, refresh_token
-
 
 
     async def login(self, login_data: LoginRequestDTO) -> tuple[str, str]:

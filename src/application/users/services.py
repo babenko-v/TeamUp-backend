@@ -1,8 +1,7 @@
 import uuid
-from multiprocessing.util import is_exiting
 
 from application.uow.interfaces import IUnitOfWork
-from application.users.dto import UserUpdateDTO
+from application.users.dto import UserUpdateDTO, UserCreatedDTO
 
 from domain.models import User as DomainUser
 
@@ -10,6 +9,29 @@ from domain.models import User as DomainUser
 class UserService:
     def __init__(self, uow: IUnitOfWork):
         self.uow = uow
+
+    async def add_user(self, user_data: UserCreatedDTO) -> DomainUser:
+
+        async with self.uow:
+            is_name_exist = await self.uow.users.exists_by_username(user_data.username)
+            if is_name_exist:
+                raise ValueError(f'User with this username {user_data.username} already exists')
+
+            is_email_exist = await self.uow.users.exists_by_email(user_data.username)
+            if is_email_exist:
+                raise ValueError(f'User with this email {user_data.username} already exists')
+
+            new_user = DomainUser(
+                id=uuid.uuid4(),
+                username=user_data.username,
+                email=user_data.email,
+                hashed_password=hashed_password,
+                status_user=StatusUserEnum.ACTIVE,
+                platform_role=user_data.platform_role
+            )
+
+            created_user = await self.uow.users.add(user_data)
+
 
     async def update_user(self, current_user: DomainUser, user_data_to_update: UserUpdateDTO) -> DomainUser:
         async with self.uow:

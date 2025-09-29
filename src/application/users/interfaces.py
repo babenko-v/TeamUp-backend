@@ -4,6 +4,13 @@ from application.shared.interfaces import IGenericRepository
 from domain.models import User
 
 
+
+class IUserService(ABC):
+
+    @abstractmethod
+    async def add_user(self, user_data) -> User:
+        pass
+
 class IUserRepository(IGenericRepository[User], ABC):
 
     @abstractmethod
