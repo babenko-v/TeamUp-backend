@@ -19,3 +19,15 @@ class TeamRoleEnum(Enum):
     MANAGER = "Manager"
     DESIGNER = "Designer"
 
+class StatusProjectEnum(Enum):
+    ACTIVE = 'Active'
+    FROZEN = 'Frozen'
+    PAUSED = 'Paused'
+
+class TechnologyEnum(Enum):
+    PYTHON = 'Python'
+    dotNET = '.NET'
+    JAVA = 'Java'
+    JAVASCRIPT = 'JavaScript'
+
+

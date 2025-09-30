@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Set, Dict, List
 
 from infrastructure.database.models import Team
-from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum
+from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum, StatusProjectEnum, TechnologyEnum
 
 
 class User:
@@ -75,7 +75,8 @@ class TeamMember:
 
 
 class Team:
-    def __init__(self, id: uuid.UUID, name: str, description: str, logo: str, owner_id: uuid.UUID):
+    def __init__(self, id: uuid.UUID, name: str, owner_id: uuid.UUID,
+                 logo: str = None, description: str = None, ):
         self.id = id
         self.name = name
         self.description = description
@@ -200,5 +201,19 @@ class Team:
         member.roles.clear()
         member.roles.update(new_roles)
         print(f"Roles for user {user_id} set to: {[r.value for r in new_roles]}")
+
+
+class Project:
+    def __init__(self, id: uuid.UUID, name: str, status: StatusProjectEnum,
+                 url_project: str, team_id: uuid.UUID, logo: str = None, description: str = None,):
+        self.id = id
+        self.name = name
+        self.description = description
+        self.status = status
+        self.logo = logo
+        self.url_project = url_project
+        self.team_id = team_id
+
+        self.stack_technologies: Set[TechnologyEnum] = set()
 
 

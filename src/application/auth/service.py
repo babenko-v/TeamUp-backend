@@ -43,7 +43,6 @@ class AuthService:
             user = await self.uow.users.get_user_by_email(login_data.email)
 
 
-        # user = self.user_repository.get_user_by_email(login_data.email)
         if not user or not self.password_hasher.verify_password(login_data.password, user.hashed_password):
             raise ValueError("Incorrect password or email")
 
@@ -53,6 +52,7 @@ class AuthService:
         refresh_token = self.token_service.create_refresh_token(data=token_data)
 
         return access_token, refresh_token
+
 
     async def refresh_access_token(self, refresh_token: str) -> str:
 

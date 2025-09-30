@@ -2,6 +2,7 @@ import uuid
 
 from application.uow.interfaces import IUnitOfWork
 from application.users.dto import UserUpdateDTO, UserCreatedDTO
+from domain.enum import StatusUserEnum
 
 from domain.models import User as DomainUser
 
@@ -25,12 +26,14 @@ class UserService:
                 id=uuid.uuid4(),
                 username=user_data.username,
                 email=user_data.email,
-                hashed_password=hashed_password,
+                hashed_password=user_data.hashed_password,
                 status_user=StatusUserEnum.ACTIVE,
                 platform_role=user_data.platform_role
             )
 
-            created_user = await self.uow.users.add(user_data)
+            created_user = await self.uow.users.add(new_user)
+
+            return created_user
 
 
     async def update_user(self, current_user: DomainUser, user_data_to_update: UserUpdateDTO) -> DomainUser:
