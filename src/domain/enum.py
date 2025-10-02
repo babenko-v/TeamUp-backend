@@ -23,6 +23,7 @@ class StatusProjectEnum(Enum):
     ACTIVE = 'Active'
     FROZEN = 'Frozen'
     PAUSED = 'Paused'
+    COMPLETED = 'Completed'
 
 class TechnologyEnum(Enum):
     PYTHON = 'Python'

@@ -204,8 +204,8 @@ class Team:
 
 
 class Project:
-    def __init__(self, id: uuid.UUID, name: str, status: StatusProjectEnum,
-                 url_project: str, team_id: uuid.UUID, logo: str = None, description: str = None,):
+    def __init__(self, id: uuid.UUID, name: str, status: StatusProjectEnum, team_id: uuid.UUID,
+                 url_project: str | None, logo: str | None, description: str | None):
         self.id = id
         self.name = name
         self.description = description
@@ -216,4 +216,36 @@ class Project:
 
         self.stack_technologies: Set[TechnologyEnum] = set()
 
+    @classmethod
+    def __reconstitute(cls, id: uuid.UUID, name: str, status: StatusProjectEnum, url_project: str | None,
+                       team_id: uuid.UUID, logo: str = None, description: str = None):
+
+        instance = cls.__new__(cls)
+
+        instance.id = id
+        instance.name = name
+        instance.description = description
+        instance.status = status
+        instance.logo = logo
+        instance.url_project = url_project
+        instance.team_id = team_id
+
+        return instance
+
+    def change_status(self, new_status: StatusProjectEnum):
+        if self.status == new_status:
+            raise ValueError("This status is already a active.")
+        if new_status == StatusProjectEnum.COMPLETED.value:
+            raise ValueError("Cannot change status of project when it is completed.")
+
+        self.status = new_status
+
+    def set_technologies(self, technologies_stack: Set[TechnologyEnum]):
+        if len(technologies_stack) == 0:
+            raise ValueError("A project must have at least one technology.")
+
+        if len(technologies_stack) > 15:
+            raise ValueError("A project must have at most 15 technologies.")
+
+        self.stack_technologies = technologies_stack
 
