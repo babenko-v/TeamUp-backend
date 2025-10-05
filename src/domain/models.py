@@ -4,7 +4,6 @@ import uuid
 from datetime import datetime
 from typing import Set, Dict, List
 
-from infrastructure.database.models import Team
 from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum, StatusProjectEnum, TechnologyEnum, ProjectRoleEnum
 
 
@@ -94,7 +93,7 @@ class Team:
 
     @classmethod
     def __reconstitute(cls, id: uuid.UUID, name: str, description: str, logo: str,
-                       members: Dict[uuid.UUID, TeamMember]) -> Team:
+                       members: Dict[uuid.UUID, TeamMember]):
 
         instance = cls.__new__(cls)
 
@@ -301,6 +300,13 @@ class Project:
             return False
         return ProjectRoleEnum.MANAGER in participant.roles
 
+    def is_manager_or_developer(self, user_id: uuid.UUID) -> bool:
+        participant = self.get_participant(user_id)
+        if not participant:
+            return False
+        return ProjectRoleEnum.MANAGER in participant.roles or ProjectRoleEnum.DEVELOPER in participant.roles
+
+
 
 
     def add_participant(self, user_to_add: User, roles: Set[ProjectRoleEnum]):
@@ -355,6 +361,12 @@ class Project:
         if not participant:
             raise ValueError("Member not found in the team.")
 
+        if ProjectRoleEnum.MANAGER in participant.roles:
+            raise ValueError("The project manager cannot be assigned.")
+
+        if len(participant.roles) >= 4:
+            raise ValueError("The roles limit for a single participant has been reached")
+
         participant.roles.add(role_to_add)
         print(f"Role '{role_to_add.value}' assigned to user {user_id}.")
 
@@ -362,13 +374,10 @@ class Project:
     def revoke_role_from_participant(self, user_id: uuid.UUID, role_to_remove: ProjectRoleEnum):
         participant = self.get_participant(user_id)
         if not participant:
-            raise ValueError("Member not found in the team.")
+            raise ValueError("Participant not found in the team.")
 
         if role_to_remove == ProjectRoleEnum.MANAGER:
-            raise ValueError("The OWNER role cannot be revoked.")
-
-        if len(participant.roles) == 1 and role_to_remove in participant.roles:
-            raise ValueError("A member must have at least one role.")
+            raise ValueError("The MANAGER role cannot be revoked.")
 
         if role_to_remove not in participant.roles:
             raise ValueError("User does not have that role.")
@@ -381,12 +390,14 @@ class Project:
 
         participant = self.get_participant(user_id)
         if not participant:
-            raise ValueError("Member not found in the team.")
+            raise ValueError("participant not found in the team.")
 
         if ProjectRoleEnum.MANAGER in new_roles:
-            raise ValueError("The owner's role cannot be modified via this method.")
+            raise ValueError("The participant's role cannot be modified via this method.")
         if not new_roles:
-            raise ValueError("A member must have at least one role.")
+            raise ValueError("A participant must have at least one role.")
+        if len(new_roles) > 5:
+            raise ValueError("A participant must have at most 5 roles.")
 
         participant.roles.clear()
         participant.roles.update(new_roles)
