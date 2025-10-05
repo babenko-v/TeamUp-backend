@@ -42,6 +42,8 @@ class User(Base):
 
     team_member = relationship("TeamMember", back_populates="users")
 
+    project_participant = relationship("ProjectParticipant", back_populates="users")
+
     social_media = relationship("SocialMediaData", back_populates="users")
 
     user_platform_role = relationship("UserPlatformRole", back_populates="users")
