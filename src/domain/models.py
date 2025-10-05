@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Set, Dict, List
 
 from infrastructure.database.models import Team
-from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum, StatusProjectEnum, TechnologyEnum
+from .enum import PlatformRoleEnum, StatusUserEnum, TeamRoleEnum, StatusProjectEnum, TechnologyEnum, ProjectRoleEnum
 
 
 class User:
@@ -28,6 +28,7 @@ class User:
         if self.status_user == StatusUserEnum.BANNED:
             return
         self.status_user = StatusUserEnum.BANNED
+
 
     def update(self, username: str | None, email: str | None,
                avatar_url: str | None, linkedin_url: str | None, github_url: str | None,
@@ -62,10 +63,14 @@ class User:
         if status_user is not None:
             self.status_user = status_user
 
+
     def change_password(self, new_hashed_password: str):
         if new_hashed_password == self.hashed_password:
             raise ValueError("New password cannot be the same as the old one.")
         self.hashed_password = new_hashed_password
+
+
+
 
 
 @dataclasses.dataclass(frozen=True)
@@ -101,6 +106,7 @@ class Team:
 
         return instance
 
+
     @property
     def owner_id(self) -> uuid.UUID | None:
         for user_id, team_member in self._members.items():
@@ -113,8 +119,11 @@ class Team:
         return list(self._members.values())
 
 
+
     def get_member(self, member_id: uuid.UUID) -> TeamMember | None:
         return self._members.get(member_id)
+
+
 
     def update(self, name: str | None, description: str | None, logo: str | None):
 
@@ -126,6 +135,7 @@ class Team:
 
         if logo is not None:
             self.logo = logo # Add logic to check logo using regex pattern
+
 
 
     def is_owner_or_maintainer(self, user_id: uuid.UUID) -> bool:
@@ -143,6 +153,8 @@ class Team:
             raise ValueError("Cannot add a member with no roles.")
         if TeamRoleEnum.OWNER in roles:
             raise ValueError("Cannot add another owner to the team.")
+        if len(self._members) > 20:
+            raise ValueError("Cannot add more than 20 members.")
 
         new_member = TeamMember(user_id=user_to_add.id, roles=roles)
         self._members[user_to_add.id] = new_member
@@ -158,6 +170,7 @@ class Team:
             raise ValueError("Cannot remove the owner of the team.")
 
         del self._members[user_id_to_remove]
+
 
 
     def assign_role_to_member(self, user_id: uuid.UUID, role_to_add: TeamRoleEnum):
@@ -203,8 +216,15 @@ class Team:
         print(f"Roles for user {user_id} set to: {[r.value for r in new_roles]}")
 
 
+
+@dataclasses.dataclass(frozen=True)
+class ProjectParticipant:
+    user_id: uuid.UUID
+    roles: Set[ProjectRoleEnum]
+
+
 class Project:
-    def __init__(self, id: uuid.UUID, name: str, status: StatusProjectEnum, team_id: uuid.UUID,
+    def __init__(self, id: uuid.UUID, name: str, status: StatusProjectEnum, team_id: uuid.UUID, manager_id: uuid.UUID,
                  url_project: str | None, logo: str | None, description: str | None):
         self.id = id
         self.name = name
@@ -212,12 +232,29 @@ class Project:
         self.status = status
         self.logo = logo
         self.url_project = url_project
+
         self.team_id = team_id
 
         self.stack_technologies: Set[TechnologyEnum] = set()
+        self._participants: Dict[uuid.UUID, ProjectParticipant] = {
+            manager_id: ProjectParticipant(user_id=manager_id, roles={ProjectRoleEnum.MANAGER})
+        }
+
+    @property
+    def manager_id(self) -> uuid.UUID | None:
+        for user_id, project_participant in self._participants.items():
+            if ProjectRoleEnum.MANAGER in project_participant.roles:
+                return user_id
+        return None # Should not happen
+
+    @property
+    def participants(self) -> List[ProjectParticipant]:
+        return list(self._participants.values())
+
+
 
     @classmethod
-    def __reconstitute(cls, id: uuid.UUID, name: str, status: StatusProjectEnum, url_project: str | None,
+    def __reconstitute(cls, id: uuid.UUID, name: str, status: StatusProjectEnum, participants: Dict[uuid.UUID, ProjectParticipant], url_project: str | None,
                        team_id: uuid.UUID, logo: str = None, description: str = None):
 
         instance = cls.__new__(cls)
@@ -230,7 +267,132 @@ class Project:
         instance.url_project = url_project
         instance.team_id = team_id
 
+        instance._participants = participants
+
         return instance
+
+
+    def update(self, name: str | None, url_project: str | None,
+               team_id: uuid.UUID, logo: str | None, description: str | None):
+
+        if name is None:
+            self.name = name
+
+        if url_project is None:
+            self.url_project = url_project
+
+        if team_id is None:
+            self.team_id = team_id
+
+        if logo is None:
+            self.logo = logo
+
+        if description is None:
+            self.description = description
+
+
+    def get_participant(self, participant_id: uuid.UUID) -> ProjectParticipant | None:
+        return self._participants.get(participant_id)
+
+
+    def is_manager(self, user_id: uuid.UUID) -> bool:
+        participant = self.get_participant(user_id)
+        if not participant:
+            return False
+        return ProjectRoleEnum.MANAGER in participant.roles
+
+
+
+    def add_participant(self, user_to_add: User, roles: Set[ProjectRoleEnum]):
+
+        if user_to_add.id in self._participants:
+            raise ValueError(f"User {user_to_add.username} is already a participant.")
+        if not roles:
+            raise ValueError("Cannot add a participant with no roles.")
+        if ProjectRoleEnum.MANAGER in roles:
+            raise ValueError("Cannot add another manager to the team.")
+        if len(self._participants) > 10:
+            raise ValueError("Cannot add more than 10 participants.")
+
+        self._participants[user_to_add.id] = ProjectParticipant(user_id=user_to_add.id, roles=roles)
+
+    def remove_participant(self, user_id_to_remove: uuid.UUID):
+
+        participant = self._participants.get(user_id_to_remove)
+        if not participant:
+            raise ValueError("Participant not found in the project.")
+        if ProjectRoleEnum.MANAGER in participant.roles:
+            raise ValueError("The project manager cannot be removed.")
+
+        del self._participants[user_id_to_remove]
+
+
+
+    def add_technology(self, technology: TechnologyEnum):
+        if len(self.stack_technologies) >= 10:
+            raise ValueError("Project cannot have more than 10 technologies.")
+        if technology in self.stack_technologies:
+            raise ValueError("Technology already exists in the project.")
+        
+        self.stack_technologies.add(technology)
+
+    def remove_technology(self, technology: TechnologyEnum):
+        if len(self.stack_technologies) == 1:
+            raise ValueError("Technology must have at least one technology.")
+        
+        self.stack_technologies.discard(technology) 
+
+    def set_technologies(self, technologies: Set[TechnologyEnum]):
+        
+        if len(technologies) > 10:
+            raise ValueError("Project cannot have more than 10 technologies.")
+        self.stack_technologies = technologies
+
+
+
+    def assign_role_to_participant(self, user_id: uuid.UUID, role_to_add: ProjectRoleEnum):
+        participant = self.get_participant(user_id)
+        if not participant:
+            raise ValueError("Member not found in the team.")
+
+        participant.roles.add(role_to_add)
+        print(f"Role '{role_to_add.value}' assigned to user {user_id}.")
+
+
+    def revoke_role_from_participant(self, user_id: uuid.UUID, role_to_remove: ProjectRoleEnum):
+        participant = self.get_participant(user_id)
+        if not participant:
+            raise ValueError("Member not found in the team.")
+
+        if role_to_remove == ProjectRoleEnum.MANAGER:
+            raise ValueError("The OWNER role cannot be revoked.")
+
+        if len(participant.roles) == 1 and role_to_remove in participant.roles:
+            raise ValueError("A member must have at least one role.")
+
+        if role_to_remove not in participant.roles:
+            raise ValueError("User does not have that role.")
+
+        participant.roles.remove(role_to_remove)
+        print(f"Role '{role_to_remove.value}' revoked from user {user_id}.")
+
+
+    def set_participant_roles(self, user_id: uuid.UUID, new_roles: Set[ProjectRoleEnum]):
+
+        participant = self.get_participant(user_id)
+        if not participant:
+            raise ValueError("Member not found in the team.")
+
+        if ProjectRoleEnum.MANAGER in new_roles:
+            raise ValueError("The owner's role cannot be modified via this method.")
+        if not new_roles:
+            raise ValueError("A member must have at least one role.")
+
+        participant.roles.clear()
+        participant.roles.update(new_roles)
+        print(f"Roles for user {user_id} set to: {[r.value for r in new_roles]}")
+
+
 
     def change_status(self, new_status: StatusProjectEnum):
         if self.status == new_status:
@@ -239,13 +401,4 @@ class Project:
             raise ValueError("Cannot change status of project when it is completed.")
 
         self.status = new_status
-
-    def set_technologies(self, technologies_stack: Set[TechnologyEnum]):
-        if len(technologies_stack) == 0:
-            raise ValueError("A project must have at least one technology.")
-
-        if len(technologies_stack) > 15:
-            raise ValueError("A project must have at most 15 technologies.")
-
-        self.stack_technologies = technologies_stack
 

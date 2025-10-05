@@ -26,9 +26,15 @@ class StatusProjectEnum(Enum):
     COMPLETED = 'Completed'
 
 class TechnologyEnum(Enum):
-    PYTHON = 'Python'
-    dotNET = '.NET'
-    JAVA = 'Java'
-    JAVASCRIPT = 'JavaScript'
+    PYTHON = "Python"
+    JAVASCRIPT = "JavaScript"
+    REACT = "React"
+    DOCKER = "Docker"
+
+class ProjectRoleEnum(Enum):
+    MANAGER = "Project Manager"
+    DEVELOPER = "Developer"
+    QA = "QA Engineer"
+    DESIGNER = "Designer"
 
 
