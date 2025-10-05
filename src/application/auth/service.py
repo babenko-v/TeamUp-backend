@@ -5,7 +5,6 @@ from application.auth.interfaces import ITokenService, IPasswordHasher
 from application.uow.interfaces import IUnitOfWork
 from application.users.dto import UserDTO, UserCreatedDTO
 from application.users.interfaces import IUserService
-from infrastructure.auth.hashing import PasswordHasher
 
 
 class AuthService:

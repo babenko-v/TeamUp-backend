@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from application.teams.interfaces import ITeamRepository
-from domain.enum import TeamRoleEnum
-from domain.models import Team as DomainTeam, TeamMember as DomainTeamMember
+
+from domain.team.model import Team as DomainTeam, TeamMember as DomainTeamMember
 
 from infrastructure.database.models import TeamMember as DBTeamMember, Team as DBTeam
 

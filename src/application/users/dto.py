@@ -2,7 +2,7 @@ from typing import Literal, Optional, List
 
 from pydantic import BaseModel, EmailStr, constr
 
-from domain.enum import PlatformRoleEnum, StatusUserEnum
+from domain.user.enum import PlatformRoleEnum, StatusUserEnum
 
 
 class UserDTO(BaseModel):

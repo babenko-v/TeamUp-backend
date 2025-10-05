@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from application.shared.interfaces import IGenericRepository
-from domain.models import Team
+from domain.team.model import Team
 
 
 class ITeamRepository(IGenericRepository[Team], ABC):

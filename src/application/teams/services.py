@@ -2,8 +2,9 @@ import uuid
 
 from application.teams.dto import TeamDTO, UpdateTeamDTO, AssignRoleDTO
 from application.uow.interfaces import IUnitOfWork
-from domain.enum import TeamRoleEnum
-from domain.models import User as DomainUser, Team as DomainTeam
+from domain.team.enum import TeamRoleEnum
+from domain.user.model import User as DomainUser
+from domain.team.model import Team as DomainTeam
 
 
 class TeamService:

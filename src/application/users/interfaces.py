@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 
 from application.shared.interfaces import IGenericRepository
-from domain.models import User
-
+from domain.user.model import User
 
 
 class IUserService(ABC):

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.users.interfaces import IUserRepository
 
-from domain.models import User as DomainUser
+from domain.user.model import User as DomainUser
 from infrastructure.database.models.users import User as DBUser, UserPlatformRole, SocialMediaData
 
 

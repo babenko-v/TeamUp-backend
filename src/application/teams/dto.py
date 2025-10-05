@@ -3,7 +3,7 @@ from typing import Optional, Set
 
 from pydantic import BaseModel, constr, Field
 
-from domain.enum import TeamRoleEnum
+from domain.team.enum import TeamRoleEnum
 
 
 class TeamDTO(BaseModel):

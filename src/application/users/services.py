@@ -2,9 +2,9 @@ import uuid
 
 from application.uow.interfaces import IUnitOfWork
 from application.users.dto import UserUpdateDTO, UserCreatedDTO
-from domain.enum import StatusUserEnum
+from domain.user.enum import StatusUserEnum
 
-from domain.models import User as DomainUser
+from domain.user.model import User as DomainUser
 
 
 class UserService:
