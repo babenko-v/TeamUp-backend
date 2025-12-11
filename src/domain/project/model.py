@@ -28,21 +28,10 @@ class Project:
             manager_id: ProjectParticipant(user_id=manager_id, roles={ProjectRoleEnum.MANAGER})
         }
 
-    @property
-    def manager_id(self) -> uuid.UUID | None:
-        for user_id, project_participant in self._participants.items():
-            if ProjectRoleEnum.MANAGER in project_participant.roles:
-                return user_id
-        return None  # Should not happen
-
-    @property
-    def participants(self) -> List[ProjectParticipant]:
-        return list(self._participants.values())
-
     @classmethod
-    def __reconstitute(cls, id: uuid.UUID, name: str, status: StatusProjectEnum,
+    def _reconstitute(cls, id: uuid.UUID, name: str, status: StatusProjectEnum,
                        participants: Dict[uuid.UUID, ProjectParticipant], url_project: str | None,
-                       team_id: uuid.UUID, logo: str = None, description: str = None):
+                       team_id: uuid.UUID, logo: str = None, description: str = None, stack_technologies: Set[TechnologyEnum] = None):
 
         instance = cls.__new__(cls)
 
@@ -55,8 +44,21 @@ class Project:
         instance.team_id = team_id
 
         instance._participants = participants
+        instance.stack_technologies = stack_technologies
 
         return instance
+
+    @property
+    def manager_id(self) -> uuid.UUID | None:
+        for user_id, project_participant in self._participants.items():
+            if ProjectRoleEnum.MANAGER in project_participant.roles:
+                return user_id
+        return None  # Should not happen
+
+    @property
+    def participants(self) -> List[ProjectParticipant]:
+        return list(self._participants.values())
+
 
     def update(self, name: str | None, url_project: str | None,
                team_id: uuid.UUID, logo: str | None, description: str | None):
