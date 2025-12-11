@@ -12,7 +12,6 @@ class TeamService:
         self.uow = uow
         self.MAX_AMOUNT_OF_TEAMS = 3
 
-    # Think about moving shared logic in separate class(module)
     async def _receive_team_and_check_permissions(self, team_id: uuid.UUID,
                                                   current_user: DomainUser):
         async with self.uow:
@@ -91,7 +90,7 @@ class TeamService:
             if owner_id != current_user.id:
                 raise ValueError('User has bot enough permission to delete data to team')
 
-            # Add logic to change status project on Freeze or smt like that using domain events
+            # TODO - Add logic to change status project on Freeze or smt like that using domain events
 
             await self.uow.teams.delete(team_id)
 
@@ -115,7 +114,7 @@ class TeamService:
             if count_team_membership_user >= self.MAX_AMOUNT_OF_TEAMS:
                 raise ValueError(f"User cannot be a member of more than {self.MAX_AMOUNT_OF_TEAMS} teams.")
 
-            team.add_member(user_to_add, roles_new_user)
+            team.add_member(user_to_add.id, roles_new_user)
 
             await self.uow.teams.update(team)
 

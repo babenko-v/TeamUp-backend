@@ -15,7 +15,7 @@ class UserRepository(IUserRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    #
+
     def __mapper_db_user_to_domain(self, db_user: DBUser, domain_user: DomainUser):
         db_user.username = domain_user.username
         db_user.email = domain_user.email

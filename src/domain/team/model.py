@@ -25,7 +25,7 @@ class Team:
 
 
     @classmethod
-    def __reconstitute(cls, id: uuid.UUID, name: str, description: str, logo: str,
+    def _reconstitute(cls, id: uuid.UUID, name: str, description: str, logo: str,
                        members: Dict[uuid.UUID, TeamMember]):
 
         instance = cls.__new__(cls)

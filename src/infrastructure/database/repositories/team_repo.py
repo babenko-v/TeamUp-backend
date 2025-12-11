@@ -10,6 +10,7 @@ from application.teams.interfaces import ITeamRepository
 from domain.team.model import Team as DomainTeam, TeamMember as DomainTeamMember
 
 from infrastructure.database.models import TeamMember as DBTeamMember, Team as DBTeam
+from domain.team.enum import TeamRoleEnum
 
 
 class TeamRepository(ITeamRepository):
@@ -25,7 +26,7 @@ class TeamRepository(ITeamRepository):
             for db_member in db_team.team_member
         }
 
-        domain_team = DomainTeam.__reconstitute(
+        domain_team = DomainTeam._reconstitute(
             id=db_team.id,
             name=db_team.name,
             description=db_team.description,

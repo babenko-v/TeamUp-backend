@@ -11,13 +11,13 @@ auth_router = APIRouter(prefix="/v1/auth", tags=["Authentication"])
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
 @auth_router.post("/login", response_model=TokenResponseDTO)
-def login(
+async def login(
     response: Response,
     login_data: LoginRequestDTO,
     auth_service: AuthService = Depends(get_auth_service),
 ):
     try:
-        access_token, refresh_token = auth_service.login(login_data)
+        access_token, refresh_token = await auth_service.login(login_data)
 
         response.set_cookie(
             key="refresh_token",
