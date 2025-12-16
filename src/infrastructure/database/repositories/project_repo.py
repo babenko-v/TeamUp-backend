@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, List, Dict, Set
+from typing import Optional, List
 
 from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -126,6 +126,22 @@ class ProjectRepository(IProjectRepository):
         return self._to_domain(db_project)
 
 
+    async def get(self) -> List[DomainProject]:
+        stmt = (
+            select(DBProject)
+            .options(
+                selectinload(DBProject.project_participant),
+                selectinload(DBProject.technologies).selectinload(DBTechnologyToProject.technology),
+                selectinload(DBProject.status)
+            )
+        )
+        result = await self.session.execute(stmt)
+        db_projects = result.scalars().all()
+
+
+        return [self._to_domain(db_project) for db_project in db_projects]
+
+
     async def get_by_id(self, id: uuid.UUID) -> Optional[DomainProject]:
         stmt = (
             select(DBProject)
@@ -183,7 +199,7 @@ class ProjectRepository(IProjectRepository):
         return result.scalar()
 
 
-    async def count_projects_for_member(self, user_id: uuid.UUID) -> int:
+    async def count_project_for_member(self, user_id: uuid.UUID) -> int:
         stmt = (
             select(func.count())
             .select_from(DBProjectParticipant)
