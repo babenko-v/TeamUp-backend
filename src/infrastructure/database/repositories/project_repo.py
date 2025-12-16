@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional, List, Dict, Set
 
-from sqlalchemy import select
+from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -70,6 +70,7 @@ class ProjectRepository(IProjectRepository):
                 )
                 self.session.add(new_tech_link)
 
+
     def _to_domain(self, db_project: DBProject) -> DomainProject:
 
         participants = {}
@@ -105,30 +106,25 @@ class ProjectRepository(IProjectRepository):
             stack_technologies=stack_technologies
         )
 
-    async def add(self, project: DomainProject) -> None:
-        db_project = DBProject(id=project.id)
-        db_project.project_participant = []
-        db_project.technologies = []
 
-        await self._mapper_db_project_from_domain(db_project, project)
-        self.session.add(db_project)
-
-    async def update(self, project: DomainProject) -> None:
+    async def get_project_by_name(self, name: str) -> Optional[DomainProject]:
         stmt = (
             select(DBProject)
-            .where(DBProject.id == project.id)
+            .where(DBProject.name == name)
             .options(
                 selectinload(DBProject.project_participant),
-                selectinload(DBProject.technologies)
+                selectinload(DBProject.technologies).selectinload(DBTechnologyToProject.technology),
+                selectinload(DBProject.status)
             )
         )
         result = await self.session.execute(stmt)
         db_project = result.scalar_one_or_none()
 
         if not db_project:
-            raise ValueError(f"Project {project.id} not found")
+            return None
 
-        await self._mapper_db_project_from_domain(db_project, project)
+        return self._to_domain(db_project)
+
 
     async def get_by_id(self, id: uuid.UUID) -> Optional[DomainProject]:
         stmt = (
@@ -147,3 +143,51 @@ class ProjectRepository(IProjectRepository):
             return None
 
         return self._to_domain(db_project)
+
+
+    async def add(self, project: DomainProject) -> None:
+        db_project = DBProject(id=project.id)
+        db_project.project_participant = []
+        db_project.technologies = []
+
+        await self._mapper_db_project_from_domain(db_project, project)
+        self.session.add(db_project)
+
+
+    async def update(self, project: DomainProject) -> None:
+        stmt = (
+            select(DBProject)
+            .where(DBProject.id == project.id)
+            .options(
+                selectinload(DBProject.project_participant),
+                selectinload(DBProject.technologies)
+            )
+        )
+        result = await self.session.execute(stmt)
+        db_project = result.scalar_one_or_none()
+
+        if not db_project:
+            raise ValueError(f"Project {project.id} not found")
+
+        await self._mapper_db_project_from_domain(db_project, project)
+
+
+    async def delete(self, id: uuid.UUID) -> None:
+        stmt = delete(DBProject).where(DBProject.id == id)
+        await self.session.execute(stmt)
+
+
+    async def exists_project_by_name(self, name: str) -> bool:
+        stmt = select(select(DBProject.id).where(DBProject.name == name).exists())
+        result = await self.session.execute(stmt)
+        return result.scalar()
+
+
+    async def count_projects_for_member(self, user_id: uuid.UUID) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(DBProjectParticipant)
+            .where(DBProjectParticipant.user_id == user_id)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar()
