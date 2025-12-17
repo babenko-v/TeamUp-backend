@@ -50,11 +50,13 @@ class Team:
     def members(self) -> List[TeamMember]:
         return list(self._members.values())
 
-
+    def is_member(self, user_id: uuid.UUID) -> bool:
+        if user_id in self._members:
+            return True
+        return False
 
     def get_member(self, member_id: uuid.UUID) -> TeamMember | None:
         return self._members.get(member_id)
-
 
 
     def update(self, name: str | None, description: str | None, logo: str | None):
