@@ -13,17 +13,15 @@ class TeamService:
         self.MAX_AMOUNT_OF_TEAMS = 3
 
     async def _receive_team_and_check_permissions(self, team_id: uuid.UUID,
-                                                  current_user: DomainUser):
-        async with self.uow:
+                                                  current_user: DomainUser) -> DomainTeam:
+        team = await self.uow.teams.get_by_id(team_id)
+        if team is None:
+            raise ValueError("Team not found")
 
-            team = await self.uow.teams.get_by_id(team_id)
-            if team is None:
-                raise ValueError("Team not found")
+        if not team.is_owner_or_maintainer(current_user.id):
+            raise ValueError('User does not have enough permission to perform this action')
 
-            if not team.is_owner_or_maintainer(current_user.id):
-                raise ValueError('User have bot enough permission to add to team')
-
-            return team
+        return team
 
 
     async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> DomainTeam:
@@ -50,9 +48,8 @@ class TeamService:
             return new_team
 
 
-    async def update_team(self, current_user: DomainUser, team_id:uuid.UUID,
+    async def update_team(self, current_user: DomainUser, team_id: uuid.UUID,
                           team_data_to_update: UpdateTeamDTO) -> DomainTeam:
-
         async with self.uow:
             team = await self.uow.teams.get_by_id(team_id)
             if team is None:
@@ -60,19 +57,19 @@ class TeamService:
 
             has_access_to_update = team.is_owner_or_maintainer(current_user.id)
             if not has_access_to_update:
-                raise ValueError('User have bot enough permission to update data to team')
+                raise ValueError('User does not have enough permission to update team data')
 
             updated_team_data = team_data_to_update.model_dump(exclude_unset=True)
 
-            if updated_team_data.name:
-
-                is_existing_team_name = await self.uow.teams.exists_team_by_name(updated_team_data.name)
-                if is_existing_team_name:
-                    raise ValueError(f"Team with this name - {updated_team_data.name} already exists")
+            if updated_team_data.get("name"):
+                if updated_team_data["name"] != team.name:
+                    is_existing_team_name = await self.uow.teams.exists_team_by_name(updated_team_data["name"])
+                    if is_existing_team_name:
+                        raise ValueError(f"Team with this name - {updated_team_data['name']} already exists")
 
             team.update(**updated_team_data)
 
-            await self.uow.teams.update(updated_team_data)
+            await self.uow.teams.update(team)
 
             return team
 
