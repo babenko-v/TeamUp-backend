@@ -7,10 +7,14 @@ from application.projects.dto import (
     AddProjectParticipantDTO,
     AddTechnologyDTO
 )
-from application.uow.interfaces import IUnitOfWork
 from domain.project.model import Project as DomainProject
 from domain.user.model import User as DomainUser
 from domain.project.enum import ProjectRoleEnum, StatusProjectEnum
+
+from application.uow.interfaces import IUnitOfWork
+
+from application.shared.exceptions import NotFoundException, AccessDeniedException, ValidationException
+
 
 
 class ProjectService:
