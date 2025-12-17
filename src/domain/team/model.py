@@ -58,7 +58,6 @@ class Team:
     def get_member(self, member_id: uuid.UUID) -> TeamMember | None:
         return self._members.get(member_id)
 
-
     def update(self, name: str | None, description: str | None, logo: str | None):
 
         if name is not None:
