@@ -5,7 +5,8 @@ from application.projects.dto import (
     ProjectCreateDTO,
     ProjectUpdateDTO,
     AddProjectParticipantDTO,
-    AddTechnologyDTO
+    AddTechnologyDTO,
+    ProjectDTO
 )
 from domain.project.model import Project as DomainProject
 from domain.user.model import User as DomainUser
@@ -37,6 +38,26 @@ class ProjectService:
             raise AccessDeniedException(f"User requires {required_role} to perform this action")
 
         return project
+
+
+    async def get_all_projects(self) -> List[ProjectDTO]:
+        async with self.uow:
+            projects = await self.uow.projects.get()
+            return [ProjectDTO.from_domain(p) for p in projects]
+
+    async def get_project_by_id(self, project_id: uuid.UUID) -> ProjectDTO:
+        async with self.uow:
+            project = await self.uow.projects.get_by_id(project_id)
+            if not project:
+                raise NotFoundException("Project not found")
+            return ProjectDTO.from_domain(project)
+
+    async def get_project_by_name(self, name: str) -> ProjectDTO:
+        async with self.uow:
+            project = await self.uow.projects.get_project_by_name(name)
+            if not project:
+                raise NotFoundException(f"Project with name '{name}' not found")
+            return ProjectDTO.from_domain(project)
 
 
     async def create_project(self, current_user: DomainUser, project_data: ProjectCreateDTO) -> DomainProject:
