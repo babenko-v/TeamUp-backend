@@ -79,10 +79,18 @@ class ProjectService:
                     raise ValidationException("Project name already exists")
 
             update_dict = update_data.model_dump(exclude_unset=True)
-            project.update_details(**update_dict)
+            project.update(**update_dict)
 
             await self.uow.projects.update(project)
             return project
+
+    async def delete_project(self, project_id: uuid.UUID, current_user: DomainUser):
+        async with self.uow:
+            project = await self._get_project_and_check_permissions(
+                project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+            )
+
+            await self.uow.projects.delete(project_id)
 
 
     async def add_participant(self, current_user: DomainUser, data: AddProjectParticipantDTO):
