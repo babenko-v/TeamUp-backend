@@ -114,6 +114,27 @@ class ProjectService:
             await self.uow.projects.delete(project_id)
 
 
+                            #### TECHNOLOGY METHOD ####
+
+    async def remove_technology(self, dto: RemoveTechnologyDTO, current_user: DomainUser):
+        async with self.uow:
+            project = await self._get_project_and_check_permissions(
+                dto.project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+            )
+
+            project.remove_technology(dto.technology)
+            await self.uow.projects.update(project)
+
+    async def set_technologies(self, dto: SetTechnologiesDTO, current_user: DomainUser):
+        async with self.uow:
+            project = await self._get_project_and_check_permissions(
+                dto.project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+            )
+
+            project.set_technologies(dto.technologies)
+            await self.uow.projects.update(project)
+
+
     async def add_participant(self, current_user: DomainUser, data: AddProjectParticipantDTO):
         async with self.uow:
             project = await self._get_project_and_check_permissions(
