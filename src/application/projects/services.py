@@ -4,9 +4,14 @@ from typing import List
 from application.projects.dto import (
     ProjectCreateDTO,
     ProjectUpdateDTO,
-    AddProjectParticipantDTO,
-    AddTechnologyDTO,
-    ProjectDTO
+    ProjectDTO,
+    BatchRemoveParticipantsDTO,
+    BatchAddParticipantsDTO,
+    SetProjectRolesDTO,
+    RevokeProjectRoleDTO,
+    AssignProjectRoleDTO,
+    SetTechnologiesDTO,
+    RemoveTechnologyDTO
 )
 from domain.project.model import Project as DomainProject
 from domain.user.model import User as DomainUser
