@@ -135,48 +135,33 @@ class ProjectService:
             await self.uow.projects.update(project)
 
 
-    async def add_participant(self, current_user: DomainUser, data: AddProjectParticipantDTO):
+                            #### MANAGING PARTICIPANT'S ROLES ####
+
+    async def assign_role_to_participant(self, project_id: uuid.UUID, dto: AssignProjectRoleDTO,
+                                         current_user: DomainUser):
         async with self.uow:
             project = await self._get_project_and_check_permissions(
-                data.project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+                project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
             )
 
-            user_to_add = await self.uow.users.get_by_id(data.user_id)
-            if not user_to_add:
-                raise NotFoundException("User to add not found")
-
-            team = await self.uow.teams.get_by_id(project.team_id)
-            if not team.is_member(user_to_add.id):
-                raise ValidationException(
-                    f"User {user_to_add.username} is not a member of the team '{team.name}' "
-                    "and cannot be added to the project."
-                )
-
-            project.add_participant(user_to_add.id, data.roles)
-
+            project.assign_role_to_participant(dto.user_id, dto.role_to_assign)
             await self.uow.projects.update(project)
 
-
-    async def remove_participant(self, current_user: DomainUser, project_id: uuid.UUID, user_id_to_remove: uuid.UUID):
+    async def revoke_role_from_participant(self, project_id: uuid.UUID, dto: RevokeProjectRoleDTO,
+                                           current_user: DomainUser):
         async with self.uow:
-            project = await self.uow.projects.get_by_id(project_id)
-            if not project: raise NotFoundException("Project not found")
+            project = await self._get_project_and_check_permissions(
+                project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+            )
 
-            is_self_removal = current_user.id == user_id_to_remove
-            is_manager = project.is_manager(current_user.id)
-
-            if not is_self_removal and not is_manager:
-                raise AccessDeniedException("You don't have permission to remove this participant")
-
-            project.remove_participant(user_id_to_remove)
-
+            project.revoke_role_from_participant(dto.user_id, dto.role_to_revoke)
             await self.uow.projects.update(project)
 
-    async def add_technology(self, current_user: DomainUser, dto: AddTechnologyDTO):
+    async def set_participant_roles(self, project_id: uuid.UUID, dto: SetProjectRolesDTO, current_user: DomainUser):
         async with self.uow:
-            project = await self._get_project_and_check_permissions(dto.project_id, current_user.id,
-                                                                    [ProjectRoleEnum.MANAGER, ProjectRoleEnum.DEVELOPER])
+            project = await self._get_project_and_check_permissions(
+                project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+            )
 
-            project.add_technology(dto.technology)
-
+            project.set_participant_roles(dto.user_id, dto.roles)
             await self.uow.projects.update(project)
