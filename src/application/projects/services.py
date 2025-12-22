@@ -165,3 +165,44 @@ class ProjectService:
 
             project.set_participant_roles(dto.user_id, dto.roles)
             await self.uow.projects.update(project)
+
+
+                            #### MANAGING PARTICIPANT ####
+
+    async def add_participants_batch(self, dto: BatchAddParticipantsDTO, current_user: DomainUser):
+
+        async with self.uow:
+            project = await self._get_project_and_check_permissions(
+                dto.project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+            )
+
+            team = await self.uow.teams.get_by_id(project.team_id)
+            if not team: raise NotFoundException("Parent team not found")
+
+            for item in dto.participants:
+                user_to_add = await self.uow.users.get_by_id(item.user_id)
+                if not user_to_add:
+                    raise NotFoundException(f"User {item.user_id} not found")
+
+                if not team.is_member(user_to_add.id):
+                    raise ValidationException(
+                        f"User {user_to_add.username} is not a member of the team '{team.name}'"
+                    )
+
+                project.add_participant(user_to_add.id, item.roles)
+
+            await self.uow.projects.update(project)
+
+
+    async def remove_participants_batch(self, dto: BatchRemoveParticipantsDTO, current_user: DomainUser):
+
+        async with self.uow:
+            project = await self._get_project_and_check_permissions(
+                dto.project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+            )
+
+            for user_id_to_remove in dto.user_ids:
+
+                project.remove_participant(user_id_to_remove)
+
+            await self.uow.projects.update(project)
