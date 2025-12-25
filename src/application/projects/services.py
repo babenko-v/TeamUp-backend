@@ -198,15 +198,25 @@ class ProjectService:
 
             await self.uow.projects.update(project)
 
-
     async def remove_participants_batch(self, dto: BatchRemoveParticipantsDTO, current_user: DomainUser):
-
         async with self.uow:
             project = await self._get_project_and_check_permissions(
-                dto.project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+                dto.project_id, current_user.id
             )
 
+            is_manager = False
+
+            participant = project.get_participant(current_user.id)
+            if participant and ProjectRoleEnum.MANAGER in participant.roles:
+                is_manager = True
+
             for user_id_to_remove in dto.user_ids:
+                is_leaving_myself = user_id_to_remove == current_user.id
+
+                if not is_manager and not is_leaving_myself:
+                    raise AccessDeniedException(
+                        f"You are not allowed to remove user {user_id_to_remove}. Only Managers can remove others."
+                    )
 
                 project.remove_participant(user_id_to_remove)
 

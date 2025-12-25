@@ -19,7 +19,7 @@ class ProjectDTO(BaseModel):
         from_attributes = True
 
 
-        ### CRUD DTO  ###
+        ### CRUD DTO ###
 class ProjectCreateDTO(BaseModel):
     name: str = Field(..., min_length=3, max_length=100)
     team_id: uuid.UUID
