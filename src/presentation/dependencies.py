@@ -1,23 +1,22 @@
 from typing import Optional
 
+from fastapi import Depends
+
 from application.auth.interfaces import ITokenService
 from application.auth.service import AuthService
 from application.uow.interfaces import IUnitOfWork
 from application.users.interfaces import IUserRepository
+from application.projects.services import ProjectService
+
+
 from infrastructure.auth.jwt import JWTService
-
-from fastapi import Depends
-
 from infrastructure.database.uow.uow import UnitOfWork
 from infrastructure.database.session import async_session_maker
+from infrastructure.database.repositories.user_repo import UserRepository
 
 
-def get_user_repo() -> Optional[IUserRepository]:
-
-    return None     # Mocked return variable, swap on implementation User Repository
 
 def get_token_service() -> ITokenService:
-
     return JWTService()
 
 def get_uow() -> IUnitOfWork:
@@ -29,3 +28,9 @@ def get_auth_service(
 ) -> AuthService:
 
     return AuthService(token_service=token_service, uow=uow)
+
+def get_project_service(
+    uow: IUnitOfWork = Depends(get_uow),
+) -> ProjectService:
+
+    return ProjectService(uow)
