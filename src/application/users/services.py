@@ -1,13 +1,14 @@
 import uuid
 
 from application.uow.interfaces import IUnitOfWork
+from application.users.interfaces import IUserService
 from application.users.dto import UserUpdateDTO, UserCreatedDTO
 from domain.user.enum import StatusUserEnum
 
 from domain.user.model import User as DomainUser
 
 
-class UserService:
+class UserService(IUserService):
     def __init__(self, uow: IUnitOfWork):
         self.uow = uow
 
