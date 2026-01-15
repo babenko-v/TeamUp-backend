@@ -7,10 +7,10 @@ from application.auth.dto import TokenResponseDTO, LoginRequestDTO
 from application.auth.service import AuthService
 from presentation.dependencies import get_auth_service
 
-auth_router = APIRouter(prefix="/v1/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
-@auth_router.post("/login", response_model=TokenResponseDTO)
+@router.post("/login", response_model=TokenResponseDTO)
 async def login(
     response: Response,
     login_data: LoginRequestDTO,
@@ -33,13 +33,13 @@ async def login(
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
-@auth_router.get("/logout")
+@router.get("/logout")
 def logout(response: Response):
     response.delete_cookie(key="refresh_token")
 
     return {"message": "Successfully logged out"}
 
-@auth_router.get("/reissue_token", response_model=TokenResponseDTO)
+@router.get("/reissue_token", response_model=TokenResponseDTO)
 def reissue_token(
     refresh_token: Optional[str] = Cookie(None),
     auth_service: AuthService = Depends(get_auth_service),

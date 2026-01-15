@@ -19,6 +19,7 @@ async def get_current_user(
         token_service: ITokenService = Depends(get_token_service),
 ) -> DomainUser:
 
+    # Preparing exception in case handling error
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -34,6 +35,7 @@ async def get_current_user(
         if user_id_str is None:
             raise credentials_exception
 
+        # Check type of token, if it's not a access, we will block access to endpoint
         if token_type != "access":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -47,6 +49,7 @@ async def get_current_user(
         raise credentials_exception
 
     async with uow:
+        # Retrieving user from database
         user = await uow.users.get_by_id(user_id)
 
         if user is None:
