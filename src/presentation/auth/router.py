@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, Response, Cookie, HTTPException, Depends
 
 from application.auth.dto import TokenResponseDTO, LoginRequestDTO
+from application.users.dto import UserDTO
 from application.auth.service import AuthService
 from presentation.dependencies import get_auth_service
 
@@ -32,6 +33,13 @@ async def login(
 
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
+
+@router.post("/register", response_model=TokenResponseDTO)
+async def register(
+    register_data: UserDTO,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    return await auth_service.register(register_data)
 
 @router.get("/logout")
 def logout(response: Response):
