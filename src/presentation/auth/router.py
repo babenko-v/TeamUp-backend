@@ -36,10 +36,22 @@ async def login(
 
 @router.post("/register", response_model=TokenResponseDTO)
 async def register(
+    response: Response,
     register_data: UserDTO,
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    return await auth_service.register(register_data)
+    access_token, refresh_token = await auth_service.register(register_data)
+
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        samesite="strict",
+        secure=True,
+        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+    )
+
+    return TokenResponseDTO(access_token=access_token)
 
 @router.get("/logout")
 def logout(response: Response):

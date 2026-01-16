@@ -11,7 +11,7 @@ from application.projects.dto import (
     RevokeProjectRoleDTO,
     AssignProjectRoleDTO,
     SetTechnologiesDTO,
-    RemoveTechnologyDTO
+    RemoveTechnologyDTO, AddTechnologyDTO
 )
 from domain.project.model import Project as DomainProject
 from domain.user.model import User as DomainUser
@@ -120,6 +120,15 @@ class ProjectService:
 
 
                             #### TECHNOLOGY METHOD ####
+
+    async def add_technology(self, dto: AddTechnologyDTO, current_user: DomainUser):
+        async with self.uow:
+            project = await self._get_project_and_check_permissions(
+                dto.project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
+            )
+
+            project.add_technology(dto.technology)
+            await self.uow.projects.update(project)
 
     async def remove_technology(self, dto: RemoveTechnologyDTO, current_user: DomainUser):
         async with self.uow:
