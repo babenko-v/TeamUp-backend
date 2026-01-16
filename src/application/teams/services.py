@@ -8,10 +8,12 @@ from application.teams.dto import (
     BatchRemoveMemberTeamDTO
 )
 from application.uow.interfaces import IUnitOfWork
+
 from domain.user.model import User as DomainUser
 from domain.team.model import Team as DomainTeam
 
 from application.shared.exceptions import NotFoundException, AccessDeniedException, ValidationException
+from application.teams.exceptions import TooManyTeamException
 
 
 class TeamService:
@@ -40,7 +42,7 @@ class TeamService:
 
             count_team_membership_user = await self.uow.teams.count_teams_for_member(current_user.id)
             if count_team_membership_user >= self.MAX_AMOUNT_OF_TEAMS:
-                raise ValueError(f"User cannot be a member of more than {self.MAX_AMOUNT_OF_TEAMS} teams.")
+                raise TooManyTeamException(f"User cannot be a member of more than {self.MAX_AMOUNT_OF_TEAMS} teams.")
 
             new_team = DomainTeam(
                 id=uuid.uuid4(),
@@ -51,7 +53,6 @@ class TeamService:
             )
 
             await self.uow.teams.add(new_team)
-
             return new_team
 
 
@@ -71,7 +72,6 @@ class TeamService:
             team.update(**updated_team_data)
 
             await self.uow.teams.update(team)
-
             return team
 
 
@@ -105,7 +105,7 @@ class TeamService:
 
                 count_team_membership_user = await self.uow.teams.count_teams_for_member(user_dto_to_add.user_id)
                 if count_team_membership_user >= self.MAX_AMOUNT_OF_TEAMS:
-                    raise ValueError(f"User cannot be a member of more than {self.MAX_AMOUNT_OF_TEAMS} teams.")
+                    raise TooManyTeamException(f"User cannot be a member of more than {self.MAX_AMOUNT_OF_TEAMS} teams.")
 
                 team.add_member(user_to_add.id, user_dto_to_add.roles)
 

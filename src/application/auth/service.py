@@ -1,10 +1,14 @@
 import uuid
 
+from application.users.dto import UserDTO, UserCreatedDTO
 from application.auth.dto import LoginRequestDTO, ChangePasswordDTO
+
 from application.auth.interfaces import ITokenService, IPasswordHasher
 from application.uow.interfaces import IUnitOfWork
-from application.users.dto import UserDTO, UserCreatedDTO
 from application.users.interfaces import IUserService
+
+from application.shared.exceptions import NotFoundException
+from application.auth.exceptions import IncorrectLoginData
 
 
 class AuthService:
@@ -43,7 +47,7 @@ class AuthService:
 
 
         if not user or not self.password_hasher.verify_password(login_data.password, user.hashed_password):
-            raise ValueError("Incorrect password or email")
+            raise IncorrectLoginData("Incorrect password or email")
 
         token_data = {"sub": str(user.id)}
 
@@ -61,7 +65,7 @@ class AuthService:
             user = await self.uow.users.get_by_id(user_id)
 
         if not user:
-            raise ValueError("User were not found")
+            raise NotFoundException("User were not found")
 
         token_data = {"sub": str(user_id)}
 
@@ -75,12 +79,12 @@ class AuthService:
         async with self.uow:
             user = await self.uow.users.get_by_id(user_id)
             if not user:
-                raise ValueError("User were not found") # Change on custom Exception type
+                raise NotFoundException("User were not found")
 
             check_password = self.password_hasher.verify_password(password_data.old_password, user.hashed_password)
 
             if not check_password:
-                raise ValueError("Incorrect old password")
+                raise IncorrectLoginData("Incorrect old password")
 
             new_hashed_password = self.password_hasher.get_password_hash(password_data.new_password)
 

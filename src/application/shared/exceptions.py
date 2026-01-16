@@ -1,17 +1,16 @@
-class ApplicationException(Exception):
-    def __init__(self, message: str = "An application error occurred"):
+class BaseHandleException(Exception):
+    def __init__(self, message: str = "An error occurred"):
         self.message = message
         super().__init__(self.message)
 
-class NotFoundException(ApplicationException):
+class NotFoundException(BaseHandleException):
     pass
 
-class AccessDeniedException(ApplicationException):
-
+class AccessDeniedException(BaseHandleException):
     pass
 
-class ValidationException(ApplicationException):
+class ValidationException(BaseHandleException):
     pass
 
-class AlreadyExistsException(ApplicationException):
+class AlreadyExistsException(BaseHandleException):
     pass

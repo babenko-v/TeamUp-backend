@@ -1,6 +1,6 @@
 from typing import List, Set
 import uuid
-from fastapi import APIRouter, Depends, status, HTTPException, Query
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from application.projects.dto import (
     ProjectDTO,
