@@ -1,19 +1,32 @@
+from typing import Type
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
 from application.uow.interfaces import IUnitOfWork
-from infrastructure.database.repositories.project_repo import ProjectRepository
-from infrastructure.database.repositories.team_repo import TeamRepository
-from infrastructure.database.repositories.user_repo import UserRepository
+from application.projects.interfaces import IProjectRepository
+from application.teams.interfaces import ITeamRepository
+from application.users.interfaces import IUserRepository
 
 
 class UnitOfWork(IUnitOfWork):
-    def __init__(self, session_factory):
-        self.session_factory = session_factory
+    def __init__(
+            self,
+            session_factory: async_sessionmaker,
+            project_repo_class: Type[IProjectRepository],
+            team_repo_class: Type[ITeamRepository],
+            user_repo_class: Type[IUserRepository]
+    ):
+
+        self._session_factory = session_factory
+        self._project_repo_class = project_repo_class
+        self._team_repo_class = team_repo_class
+        self._user_repo_class = user_repo_class
 
     async def __aenter__(self):
-        self.session = self.session_factory()
+        self._session = self._session_factory()
 
-        self.users = UserRepository(self.session)
-        self.teams = TeamRepository(self.session)
-        self.projects = ProjectRepository(self.session)
+        self.projects = self._project_repo_class(self._session)
+        self.teams = self._team_repo_class(self._session)
+        self.users = self._user_repo_class(self._session)
 
         return await super().__aenter__()
 
@@ -23,10 +36,10 @@ class UnitOfWork(IUnitOfWork):
         else:
             await self.commit()
 
-        await self.session.close()
+        await self._session.close()
 
     async def commit(self):
-        await self.session.commit()
+        await self._session.commit()
 
     async def rollback(self):
-        await self.session.rollback()
+        await self._session.rollback()
