@@ -1,4 +1,6 @@
 from fastapi import Depends
+from dishka import Provider, Scope, provide, make_async_container
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from application.auth.interfaces import ITokenService, IPasswordHasher
 from application.auth.service import AuthService
@@ -12,6 +14,10 @@ from infrastructure.database.uow.uow import UnitOfWork
 from infrastructure.database.session import async_session_maker
 from infrastructure.auth.hashing import PasswordHasher
 
+class DatabaseProvider(Provider):
+    @provide(scope=Scope.APP)
+    def get_engine_factory(self) -> async_sessionmaker:
+        return async_session_maker
 
 def get_token_service() -> ITokenService:
     return JWTService()

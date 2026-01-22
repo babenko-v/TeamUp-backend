@@ -1,4 +1,5 @@
 from typing import Type
+
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from application.uow.interfaces import IUnitOfWork
