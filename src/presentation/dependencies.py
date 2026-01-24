@@ -23,8 +23,11 @@ from infrastructure.database.uow.uow import UnitOfWork
 from infrastructure.database.session import async_session_maker
 from infrastructure.auth.hashing import PasswordHasher
 
+from presentation.security import AuthUserProvider
+
 
 class DatabaseProvider(Provider):
+
     @provide(scope=Scope.APP)
     def get_engine_factory(self) -> async_sessionmaker:
         return async_session_maker
@@ -106,6 +109,7 @@ container = make_async_container(
     UserProvider(),
     TeamProvider(),
     ProjectProvider(),
+    AuthUserProvider()
 )
 
 
