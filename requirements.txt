@@ -2,6 +2,8 @@ fastapi
 uvicorn
 pydantic[email]
 
+dishka
+
 python-dotenv
 
 python-jose

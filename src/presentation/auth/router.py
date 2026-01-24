@@ -2,20 +2,23 @@ import os
 from typing import Optional
 
 from fastapi import APIRouter, Response, Cookie, HTTPException, Depends
+from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from application.auth.dto import TokenResponseDTO, LoginRequestDTO
 from application.users.dto import UserDTO
 from application.auth.service import AuthService
-from presentation.dependencies import get_auth_service
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth",
+                   tags=["Authentication"],
+                   route_class=DishkaRoute)
+
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
 @router.post("/login", response_model=TokenResponseDTO)
 async def login(
     response: Response,
     login_data: LoginRequestDTO,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: FromDishka[AuthService],
 ):
     try:
         access_token, refresh_token = await auth_service.login(login_data)
@@ -38,7 +41,7 @@ async def login(
 async def register(
     response: Response,
     register_data: UserDTO,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: FromDishka[AuthService],
 ):
     access_token, refresh_token = await auth_service.register(register_data)
 
@@ -61,8 +64,8 @@ def logout(response: Response):
 
 @router.get("/reissue_token", response_model=TokenResponseDTO)
 def reissue_token(
+    auth_service: FromDishka[AuthService],
     refresh_token: Optional[str] = Cookie(None),
-    auth_service: AuthService = Depends(get_auth_service),
 ):
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token not found in cookies!")

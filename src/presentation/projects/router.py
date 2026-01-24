@@ -1,6 +1,8 @@
 from typing import List, Set
 import uuid
+
 from fastapi import APIRouter, Depends, status, HTTPException
+from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from application.projects.dto import (
     ProjectDTO,
@@ -27,10 +29,9 @@ from domain.project.enum import TechnologyEnum
 
 from application.projects.services import ProjectService
 
-from presentation.dependencies import get_project_service
-from presentation.security import get_current_user
-
-router = APIRouter(prefix="/projects", tags=["Projects"])
+router = APIRouter(prefix="/projects",
+                   tags=["Projects"],
+                   route_class=DishkaRoute)
 
 # =========================================================================
 # CRUD OPERATIONS
@@ -38,22 +39,22 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 
 @router.get("/", response_model=List[ProjectDTO])
 async def get_all_projects(
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: FromDishka[ProjectService]
 ):
     return await project_service.get_all_projects()
 
 @router.get("/{project_id}", response_model=ProjectDTO)
 async def get_project_by_id(
     project_id: uuid.UUID,
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: FromDishka[ProjectService]
 ):
     return await project_service.get_project_by_id(project_id)
 
 @router.post("/", response_model=ProjectDTO, status_code=status.HTTP_201_CREATED)
 async def create_project(
     project_data: ProjectCreateDTO,
-    current_user: DomainUser = Depends(get_current_user),
-    project_service: ProjectService = Depends(get_project_service)
+    current_user: FromDishka[DomainUser],
+    project_service: FromDishka[ProjectService],
 ):
     new_project = await project_service.create_project(current_user, project_data)
 
@@ -63,16 +64,16 @@ async def create_project(
 async def update_project(
     project_id: uuid.UUID,
     update_data: ProjectUpdateDTO,
-    current_user: DomainUser = Depends(get_current_user),
-    project_service: ProjectService = Depends(get_project_service)
+    current_user: FromDishka[DomainUser],
+    project_service: FromDishka[ProjectService]
 ):
     return await project_service.update_project(current_user, project_id, update_data)
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_project(
     project_id: uuid.UUID,
-    current_user: DomainUser = Depends(get_current_user),
-    project_service: ProjectService = Depends(get_project_service)
+    current_user: FromDishka[DomainUser],
+    project_service: FromDishka[ProjectService]
 ):
     await project_service.delete_project(project_id, current_user)
 
@@ -85,8 +86,8 @@ async def delete_project(
 async def add_technologies(
     project_id: uuid.UUID,
     technologies: TechnologyEnum,
-    current_user: DomainUser = Depends(get_current_user),
-    project_service: ProjectService = Depends(get_project_service)
+    current_user: FromDishka[DomainUser],
+    project_service: FromDishka[ProjectService]
 ):
     dto = AddTechnologyDTO(project_id=project_id, technology=technologies)
 
@@ -97,8 +98,8 @@ async def add_technologies(
 async def remove_technology(
         project_id: uuid.UUID,
         technology: TechnologyEnum,
-        current_user: DomainUser = Depends(get_current_user),
-        project_service: ProjectService = Depends(get_project_service)
+        current_user: FromDishka[DomainUser],
+        project_service: FromDishka[ProjectService]
 ):
     dto = RemoveTechnologyDTO(project_id=project_id, technology=technology)
 
@@ -109,8 +110,8 @@ async def remove_technology(
 async def set_technologies(
         project_id: uuid.UUID,
         technologies: Set[TechnologyEnum],
-        current_user: DomainUser = Depends(get_current_user),
-        project_service: ProjectService = Depends(get_project_service)
+        current_user: FromDishka[DomainUser],
+        project_service: FromDishka[ProjectService]
 ):
 
     dto = SetTechnologiesDTO(project_id=project_id, technologies=technologies)
@@ -126,8 +127,8 @@ async def set_technologies(
 async def add_participants_batch(
         project_id: uuid.UUID,
         dto: BatchAddParticipantsDTO,
-        current_user: DomainUser = Depends(get_current_user),
-        project_service: ProjectService = Depends(get_project_service)
+        current_user: FromDishka[DomainUser],
+        project_service: FromDishka[ProjectService]
 ):
     if dto.project_id != project_id:
         raise HTTPException(status_code=400, detail="Project ID in URL and body mismatch")
@@ -141,8 +142,8 @@ async def add_participants_batch(
 async def remove_participants_batch(
         project_id: uuid.UUID,
         dto: BatchRemoveParticipantsDTO,
-        current_user: DomainUser = Depends(get_current_user),
-        project_service: ProjectService = Depends(get_project_service)
+        current_user: FromDishka[DomainUser],
+        project_service: FromDishka[ProjectService]
 ):
     if dto.project_id != project_id:
         raise HTTPException(status_code=400, detail="Project ID in URL and body mismatch")
@@ -161,8 +162,8 @@ async def assign_role(
         project_id: uuid.UUID,
         user_id: uuid.UUID,
         dto: AssignProjectRoleDTO,
-        current_user: DomainUser = Depends(get_current_user),
-        project_service: ProjectService = Depends(get_project_service)
+        current_user: FromDishka[DomainUser],
+        project_service: FromDishka[ProjectService]
 ):
     if dto.user_id != user_id:
         dto.user_id = user_id
@@ -177,8 +178,8 @@ async def revoke_role(
         project_id: uuid.UUID,
         user_id: uuid.UUID,
         dto: RevokeProjectRoleDTO,
-        current_user: DomainUser = Depends(get_current_user),
-        project_service: ProjectService = Depends(get_project_service)
+        current_user: FromDishka[DomainUser],
+        project_service: FromDishka[ProjectService]
 ):
     if dto.user_id != user_id:
         dto.user_id = user_id
@@ -193,8 +194,8 @@ async def set_participant_roles(
         project_id: uuid.UUID,
         user_id: uuid.UUID,
         dto: SetProjectRolesDTO,
-        current_user: DomainUser = Depends(get_current_user),
-        project_service: ProjectService = Depends(get_project_service)
+        current_user: FromDishka[DomainUser],
+        project_service: FromDishka[ProjectService]
 ):
     if dto.user_id != user_id:
         dto.user_id = user_id
