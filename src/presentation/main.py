@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from presentation.dependencies import init_dependencies
@@ -5,8 +7,15 @@ from presentation.dependencies import init_dependencies
 from presentation.auth.router import router as auth_router
 from presentation.projects.router import router as project_router
 
-
-app = FastAPI(title="TeamUp endpoint", prefix="/api/v1")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    container = getattr(app.state, "dishka_container", None)
+    if container is not None:
+        await container.close()
+app = FastAPI(title="TeamUp endpoint",
+              prefix="/api/v1",
+              lifespan=lifespan)
 
 init_dependencies(app)
 app.include_router(auth_router)
