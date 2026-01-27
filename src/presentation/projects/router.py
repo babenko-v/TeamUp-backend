@@ -50,6 +50,13 @@ async def get_project_by_id(
 ):
     return await project_service.get_project_by_id(project_id)
 
+@router.get("/{project_name}", response_model=ProjectDTO)
+async def get_project_by_id(
+    project_name: str,
+    project_service: FromDishka[ProjectService]
+):
+    return await project_service.get_project_by_name(project_name)
+
 @router.post("/", response_model=ProjectDTO, status_code=status.HTTP_201_CREATED)
 async def create_project(
     project_data: ProjectCreateDTO,
