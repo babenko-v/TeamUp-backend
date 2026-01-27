@@ -9,7 +9,7 @@ from application.teams.interfaces import ITeamRepository
 
 from domain.team.model import Team as DomainTeam, TeamMember as DomainTeamMember
 
-from infrastructure.database.models import TeamMember as DBTeamMember, Team as DBTeam
+from infrastructure.database.models import TeamMember as DBTeamMember, Team as DBTeam, TeamRole as DBTeamRole
 from domain.team.enum import TeamRoleEnum
 
 
@@ -51,7 +51,13 @@ class TeamRepository(ITeamRepository):
     async def get_by_id(self, team_id: str) -> Optional[DomainTeam]:
         stmt_teams = (select(DBTeam)
                  .where(DBTeam.id == team_id)
-                 .options(selectinload(DBTeam.team_member)))
+                 .options(
+                    selectinload(DBTeam.team_member)
+                        .selectinload(DBTeamRole.role),
+                    selectinload(DBTeam.team_member)
+                        .selectinload(DBTeamRole.user),
+            )
+        )
 
         result = await self.session.execute(stmt_teams)
 
@@ -62,8 +68,14 @@ class TeamRepository(ITeamRepository):
 
     async def get_team_by_name(self, team_name: str) -> Optional[DomainTeam]:
         stmt_teams = (select(DBTeam)
-                 .where(DBTeam.name == team_name)
-                 .options(selectinload(DBTeam.team_member)))
+                .where(DBTeam.name == team_name)
+                .options(
+                    selectinload(DBTeam.team_member)
+                        .selectinload(DBTeamRole.role),
+                    selectinload(DBTeam.team_member)
+                        .selectinload(DBTeamRole.user),
+            )
+        )
 
         result = await self.session.execute(stmt_teams)
 

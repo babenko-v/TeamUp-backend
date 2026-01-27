@@ -112,9 +112,13 @@ class ProjectRepository(IProjectRepository):
             select(DBProject)
             .where(DBProject.name == name)
             .options(
-                selectinload(DBProject.project_participant),
-                selectinload(DBProject.technologies).selectinload(DBTechnologyToProject.technology),
-                selectinload(DBProject.status)
+                selectinload(DBProject.status),
+                selectinload(DBProject.participants)
+                    .selectinload(DBProjectParticipant.user),
+                selectinload(DBProject.participants)
+                    .selectinload(DBProjectParticipant.role),
+                selectinload(DBProject.technologies)
+                    .selectinload(DBTechnologyToProject.technology)
             )
         )
         result = await self.session.execute(stmt)
@@ -147,9 +151,14 @@ class ProjectRepository(IProjectRepository):
             select(DBProject)
             .where(DBProject.id == id)
             .options(
-                selectinload(DBProject.project_participant),
-                selectinload(DBProject.technologies).selectinload(DBTechnologyToProject.technology),
-                selectinload(DBProject.status)
+                # Завантажуємо статус
+                selectinload(DBProject.status),
+                selectinload(DBProject.participants)
+                    .selectinload(DBProjectParticipant.user),
+                selectinload(DBProject.participants)
+                    .selectinload(DBProjectParticipant.role),
+                selectinload(DBProject.technologies)
+                    .selectinload(DBTechnologyToProject.technology)
             )
         )
         result = await self.session.execute(stmt)

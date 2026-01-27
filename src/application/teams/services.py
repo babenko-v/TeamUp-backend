@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 from application.teams.dto import (
     TeamDTO,
@@ -31,6 +32,26 @@ class TeamService:
             raise AccessDeniedException('User does not have enough permission to perform this action')
 
         return team
+
+
+    async def get_all_teams(self) -> List[TeamDTO]:
+        async with self.uow:
+            teams = await self.uow.teams.get()
+            return [TeamDTO.from_domain(team) for team in teams]
+
+    async def get_team_by_id(self, team_id: uuid.UUID) -> TeamDTO:
+        async with self.uow:
+            team = await self.uow.teams.get_by_id(team_id)
+            if not team:
+                raise NotFoundException("Team not found")
+            return TeamDTO.from_domain(team)
+
+    async def get_team_by_name(self, name: str) -> TeamDTO:
+        async with self.uow:
+            project = await self.uow.teams.get_team_by_name(name)
+            if not project:
+                raise NotFoundException(f"Team with name '{name}' not found")
+            return TeamDTO.from_domain(project)
 
 
     async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> TeamDTO:
