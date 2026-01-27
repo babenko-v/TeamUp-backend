@@ -65,7 +65,7 @@ class ProjectService:
             return ProjectDTO.from_domain(project)
 
 
-    async def create_project(self, current_user: DomainUser, project_data: ProjectCreateDTO) -> DomainProject:
+    async def create_project(self, current_user: DomainUser, project_data: ProjectCreateDTO) -> ProjectDTO:
         async with self.uow:
 
             team = await self.uow.teams.get_by_id(project_data.team_id)
@@ -91,10 +91,12 @@ class ProjectService:
 
             await self.uow.projects.add(new_project)
 
+            new_project = ProjectDTO.from_domain(new_project)
+
             return new_project
 
     async def update_project(self, current_user: DomainUser, project_id: uuid.UUID,
-                             update_data: ProjectUpdateDTO) -> DomainProject:
+                             update_data: ProjectUpdateDTO) -> ProjectDTO:
         async with self.uow:
             project = await self._get_project_and_check_permissions(
                 project_id, current_user.id, required_role=ProjectRoleEnum.MANAGER
@@ -108,6 +110,9 @@ class ProjectService:
             project.update(**update_dict)
 
             await self.uow.projects.update(project)
+
+            project = ProjectDTO.from_domain(project)
+
             return project
 
     async def delete_project(self, project_id: uuid.UUID, current_user: DomainUser):

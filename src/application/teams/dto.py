@@ -11,6 +11,9 @@ class TeamDTO(BaseModel):
     description: constr(min_length=10, max_length=500)
     avatar_url: Optional[constr(min_length=10, max_length=500)] = None
 
+    class Config:
+        from_attributes = True
+
 class UpdateTeamDTO(BaseModel):
     name: Optional[constr(min_length=3, max_length=50)] = None
     description: Optional[constr(min_length=10, max_length=500)] = None

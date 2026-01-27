@@ -33,7 +33,7 @@ class TeamService:
         return team
 
 
-    async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> DomainTeam:
+    async def create_team(self, current_user: DomainUser, team_data: TeamDTO) -> TeamDTO:
 
         async with self.uow:
             is_exiting_team_name = await self.uow.teams.exists_team_by_name(team_data.name)
@@ -53,6 +53,8 @@ class TeamService:
             )
 
             await self.uow.teams.add(new_team)
+
+            new_team = TeamDTO.from_domain(new_team)
             return new_team
 
 
@@ -72,6 +74,9 @@ class TeamService:
             team.update(**updated_team_data)
 
             await self.uow.teams.update(team)
+
+            team = TeamDTO.from_domain(team)
+
             return team
 
 
