@@ -3,11 +3,13 @@ from typing import List
 
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from application.users.interfaces import IUserRepository
 
 from domain.user.model import User as DomainUser
 from infrastructure.database.models.users import User as DBUser, UserPlatformRole, SocialMediaData
+from infrastructure.database.models.teams import TeamMember as DBTeamMember
 
 
 class UserRepository(IUserRepository):
@@ -67,7 +69,35 @@ class UserRepository(IUserRepository):
 
 
     async def get_by_id(self, user_id: str) -> DomainUser | None:
-        stmt_users = select(DBUser).where(DBUser.id == user_id)
+        stmt_users = (select(DBUser)
+                      .where(DBUser.id == user_id)
+                      .options(
+                        selectinload(DBUser.status),
+                        selectinload(DBUser.team_member)
+                            .selectinload(DBTeamMember.participant),
+                        selectinload(DBUser.social_media),
+                        selectinload(DBUser.user_platform_role),
+            )
+        )
+
+        result = await self.session.execute(stmt_users)
+
+        db_user = result.scalar_one_or_none()
+
+        return self._to_domain(db_user) if db_user else None
+
+
+    async def get_user_by_email(self, email: str) -> DomainUser | None:
+        stmt_users = (select(DBUser)
+                      .where(DBUser.email == email)
+                        .options(
+                            selectinload(DBUser.status),
+                            selectinload(DBUser.team_member)
+                            .selectinload(DBTeamMember.participant),
+                            selectinload(DBUser.social_media),
+                            selectinload(DBUser.user_platform_role),
+            )
+        )
 
         result = await self.session.execute(stmt_users)
 
@@ -84,16 +114,6 @@ class UserRepository(IUserRepository):
         db_user = result.scalar()
 
         return db_user
-
-
-    async def get_user_by_email(self, email: str) -> DomainUser | None:
-        stmt_users = select(DBUser).where(DBUser.email == email)
-
-        result = await self.session.execute(stmt_users)
-
-        db_user = result.scalar_one_or_none()
-
-        return self._to_domain(db_user) if db_user else None
 
 
     async def exists_by_username(self, username: str) -> bool:

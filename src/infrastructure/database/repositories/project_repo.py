@@ -151,7 +151,6 @@ class ProjectRepository(IProjectRepository):
             select(DBProject)
             .where(DBProject.id == id)
             .options(
-                # Завантажуємо статус
                 selectinload(DBProject.status),
                 selectinload(DBProject.participants)
                     .selectinload(DBProjectParticipant.user),

@@ -50,6 +50,8 @@ class TeamMember(Base):
     role_id = Column(Integer, ForeignKey('team_role.id'))
     role = relationship("TeamRole", back_populates="team_members")
 
+    participant = relationship("ProjectParticipant", back_populates="project")
+
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     def __str__(self):

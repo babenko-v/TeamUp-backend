@@ -55,11 +55,11 @@ class ProjectParticipant(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     project_id = Column(UUID(as_uuid=True), ForeignKey('projects.id'))
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    team_member_id = Column(UUID(as_uuid=True), ForeignKey('team_members.id'))
     role_id = Column(Integer, ForeignKey('project_participant_role.id'))
 
     project = relationship("Project", back_populates="participants")
-    user = relationship("User")
+    team_member = relationship("TeamMember")
     role = relationship("ProjectParticipantRole", back_populates="participants")
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
