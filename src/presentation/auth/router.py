@@ -16,9 +16,9 @@ REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")
 
 @router.post("/login", response_model=TokenResponseDTO)
 async def login(
-    response: Response,
-    login_data: LoginRequestDTO,
-    auth_service: FromDishka[AuthService],
+        response: Response,
+        login_data: LoginRequestDTO,
+        auth_service: FromDishka[AuthService],
 ):
     try:
         access_token, refresh_token = await auth_service.login(login_data)
@@ -39,9 +39,9 @@ async def login(
 
 @router.post("/register", response_model=TokenResponseDTO)
 async def register(
-    response: Response,
-    register_data: UserDTO,
-    auth_service: FromDishka[AuthService],
+        response: Response,
+        register_data: UserDTO,
+        auth_service: FromDishka[AuthService],
 ):
     access_token, refresh_token = await auth_service.register(register_data)
 
@@ -64,8 +64,8 @@ def logout(response: Response):
 
 @router.get("/reissue_token", response_model=TokenResponseDTO)
 def reissue_token(
-    auth_service: FromDishka[AuthService],
-    refresh_token: Optional[str] = Cookie(None),
+        auth_service: FromDishka[AuthService],
+        refresh_token: Optional[str] = Cookie(None),
 ):
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token not found in cookies!")

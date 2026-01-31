@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import List, Set, Optional
 import uuid
 
 from fastapi import APIRouter, Depends, status, HTTPException
@@ -43,14 +43,14 @@ async def get_all_projects(
 ):
     return await project_service.get_all_projects()
 
-@router.get("/{project_id}", response_model=ProjectDTO)
+@router.get("/{project_id}", response_model=Optional[ProjectDTO])
 async def get_project_by_id(
     project_id: uuid.UUID,
     project_service: FromDishka[ProjectService]
 ):
     return await project_service.get_project_by_id(project_id)
 
-@router.get("/{project_name}", response_model=ProjectDTO)
+@router.get("/{project_name}", response_model=Optional[ProjectDTO])
 async def get_project_by_id(
     project_name: str,
     project_service: FromDishka[ProjectService]

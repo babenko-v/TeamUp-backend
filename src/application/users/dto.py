@@ -1,4 +1,5 @@
 from typing import Literal, Optional, List
+import uuid
 
 from pydantic import BaseModel, EmailStr, constr
 
@@ -6,10 +7,14 @@ from domain.user.enum import PlatformRoleEnum, StatusUserEnum
 
 
 class UserDTO(BaseModel):
+    id: uuid.UUID
     username: constr(min_length=3, max_length=50, pattern=r"^\S*$")
     password: constr(min_length=8)
     email: EmailStr
     platform_role: List[Literal[PlatformRoleEnum.RECRUITER, PlatformRoleEnum.DEVELOPER_USER]]
+
+    class Config:
+        from_attributes = True
 
 class UserCreatedDTO(BaseModel):
     username: constr(min_length=3, max_length=50)

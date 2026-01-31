@@ -1,8 +1,9 @@
 import uuid
+from typing import List
 
 from application.uow.interfaces import IUnitOfWork
 from application.users.interfaces import IUserService
-from application.users.dto import UserUpdateDTO, UserCreatedDTO
+from application.users.dto import UserUpdateDTO, UserCreatedDTO, UserDTO
 from application.shared.exceptions import AlreadyExistsException, NotFoundException
 
 from domain.user.enum import StatusUserEnum
@@ -12,6 +13,19 @@ from domain.user.model import User as DomainUser
 class UserService(IUserService):
     def __init__(self, uow: IUnitOfWork):
         self.uow = uow
+
+    async def get_all_users(self) -> List[UserDTO]:
+        async with self.uow:
+            users = await self.uow.users.get()
+            return [UserDTO.from_domain(user) for user in users]
+
+    async def get_user_by_id(self, user_id: uuid.UUID) -> UserDTO:
+        async with self.uow:
+            user = await self.uow.users.get_by_id(user_id)
+            if not user:
+                raise NotFoundException("Project not found")
+            return UserDTO.from_domain(user)
+
 
     async def add_user(self, user_data: UserCreatedDTO) -> DomainUser:
 
@@ -35,12 +49,13 @@ class UserService(IUserService):
 
             created_user = await self.uow.users.add(new_user)
 
-            return created_user
+            user = UserDTO.from_domain(created_user)
+
+            return user
 
 
     async def update_user(self, current_user: DomainUser, user_data_to_update: UserUpdateDTO) -> DomainUser:
         async with self.uow:
-
             user = await self.uow.users.get_by_id(current_user.id)
 
             if user is None:
@@ -65,17 +80,18 @@ class UserService(IUserService):
 
             await self.uow.users.update(user)
 
+            user = UserDTO.from_domain(user)
+
             return user
 
 
     async def delete_user(self, user_id_to_delete: uuid.UUID, current_user_id: uuid.UUID):
-
         if user_id_to_delete != current_user_id:
             raise ValueError("You can only delete your own account")
 
         async with self.uow:
-
             is_owner = self.uow.teams.is_user_owner_any_team(user_id_to_delete)
+
             if is_owner:
                 raise ValueError("Cannot delete a user who is an owner of a team.")
 

@@ -48,7 +48,7 @@ class ProjectService:
     async def get_all_projects(self) -> List[ProjectDTO]:
         async with self.uow:
             projects = await self.uow.projects.get()
-            return [ProjectDTO.from_domain(p) for p in projects]
+            return [ProjectDTO.from_domain(projects) for projects in projects]
 
     async def get_project_by_id(self, project_id: uuid.UUID) -> ProjectDTO:
         async with self.uow:

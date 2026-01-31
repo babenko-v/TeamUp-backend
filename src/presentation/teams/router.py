@@ -48,7 +48,7 @@ async def get_team_by_id(
     return await team_service.get_team_by_id(team_id)
 
 @router.get("/{project_name}", response_model=TeamDTO)
-async def get_team_by_id(
+async def get_team_by_name(
     team_name: str,
     team_service: FromDishka[TeamService],
 ):
