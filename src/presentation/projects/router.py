@@ -130,7 +130,7 @@ async def set_technologies(
 # PARTICIPANTS MANAGEMENT (BATCH)
 # =========================================================================
 
-@router.post("/{project_id}/participants/batch", status_code=status.HTTP_200_OK)
+@router.post("/{project_id}/participants", status_code=status.HTTP_200_OK)
 async def add_participants_batch(
         project_id: uuid.UUID,
         dto: BatchAddParticipantsDTO,
@@ -145,7 +145,7 @@ async def add_participants_batch(
     return {"message": "Participants added successfully"}
 
 
-@router.delete("/{project_id}/participants/batch", status_code=status.HTTP_200_OK)
+@router.delete("/{project_id}/participants", status_code=status.HTTP_200_OK)
 async def remove_participants_batch(
         project_id: uuid.UUID,
         dto: BatchRemoveParticipantsDTO,

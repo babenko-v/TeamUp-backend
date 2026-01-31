@@ -5,10 +5,21 @@ from fastapi import APIRouter, status, HTTPException
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from application.teams.dto import (
+    #### Base CRUD ####
     TeamDTO,
     TeamCreateDTO,
-    TeamUpdateDTO
+    TeamUpdateDTO,
+
+    #### Team members management ####
+    BatchAddPMemberTeamDTO,
+    BatchRemoveMemberTeamDTO,
+
+    ####  Roles ####
+    AssignRoleDTO,
+    RevokeRoleDTO,
+    SetRolesDTO
 )
+
 from application.teams.services import TeamService
 
 from domain.user.model import User as DomainUser
@@ -18,6 +29,10 @@ router = APIRouter(prefix="/teams",
                    tags=["Teams"],
                    route_class=DishkaRoute)
 
+
+# =========================================================================
+# CRUD OPERATIONS
+# =========================================================================
 
 @router.get("/", response_model=List[TeamDTO])
 async def get_all_teams(
@@ -65,4 +80,88 @@ async def delete_team(
         team_service: FromDishka[TeamService]
 ):
     await team_service.delete_team(team_id, current_user)
+
+
+# =========================================================================
+# TEAM MEMBER MANAGEMENT (BATCH)
+# =========================================================================
+
+@router.post("/{team_id}/team_members", status_code=status.HTTP_200_OK)
+async def create_team_members(
+        team_id: uuid.UUID,
+        dto: BatchAddPMemberTeamDTO,
+        current_user: FromDishka[DomainUser],
+        team_service: FromDishka[TeamService]
+):
+    if dto.team_id != team_id:
+        raise HTTPException(status_code=400, detail="Team ID in URL and body mismatch")
+
+    await team_service.add_members_batch(dto, current_user)
+    return {"message": "Team members added successfully"}
+
+
+@router.delete("/{team_id}/team_members", status_code=status.HTTP_200_OK)
+async def delete_team_members(
+        team_id: uuid.UUID,
+        dto: BatchRemoveMemberTeamDTO,
+        current_user: FromDishka[DomainUser],
+        team_service: FromDishka[TeamService]
+):
+    if dto.team_id != team_id:
+        raise HTTPException(status_code=400, detail="Team ID in URL and body mismatch")
+
+    await team_service.remove_members_batch(dto, current_user)
+    return {"message": "Team members removed successfully"}
+
+
+# =========================================================================
+# TEAM MEMBER ROLES MANAGEMENT
+# =========================================================================
+
+@router.post("/{team_id}/team_member/{user_id}/roles", status_code=status.HTTP_200_OK)
+async def assign_role_to_team_member(
+        team_id: uuid.UUID,
+        user_id: uuid.UUID,
+        dto: AssignRoleDTO,
+        current_user: FromDishka[DomainUser],
+        team_service: FromDishka[TeamService]
+):
+    if dto.user_id != user_id:
+        dto.user_id = user_id
+
+
+    await team_service.assign_role_to_team_member(team_id, dto, current_user)
+    return {"message": "Role assigned successfully"}
+
+
+@router.delete("/{team_id}/team_member/{user_id}/roles", status_code=status.HTTP_200_OK)
+async def revoke_role_to_team_member(
+        team_id: uuid.UUID,
+        user_id: uuid.UUID,
+        dto: RevokeRoleDTO,
+        current_user: FromDishka[DomainUser],
+        team_service: FromDishka[TeamService]
+):
+    if dto.user_id != user_id:
+        dto.user_id = user_id
+
+
+    await team_service.revoke_role_from_team_member(team_id, dto, current_user)
+    return {"message": "Role assigned successfully"}
+
+
+@router.put("/{team_id}/team_member/{user_id}/roles", status_code=status.HTTP_200_OK)
+async def set_roles_to_team_member(
+        team_id: uuid.UUID,
+        user_id: uuid.UUID,
+        dto: SetRolesDTO,
+        current_user: FromDishka[DomainUser],
+        team_service: FromDishka[TeamService]
+):
+    if dto.user_id != user_id:
+        dto.user_id = user_id
+
+
+    await team_service.set_roles_to_team_member(team_id, dto, current_user)
+    return {"message": "Role assigned successfully"}
 
