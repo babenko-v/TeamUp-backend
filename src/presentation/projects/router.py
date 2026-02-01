@@ -25,7 +25,7 @@ from application.projects.dto import (
 )
 
 from domain.user.model import User as DomainUser
-from domain.project.enum import TechnologyEnum
+from domain.shared.enum import TechnologyEnum
 
 from application.projects.services import ProjectService
 

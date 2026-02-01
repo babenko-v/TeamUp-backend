@@ -7,11 +7,6 @@ class StatusProjectEnum(Enum):
     PAUSED = 'Paused'
     COMPLETED = 'Completed'
 
-class TechnologyEnum(Enum):
-    PYTHON = "Python"
-    JAVASCRIPT = "JavaScript"
-    REACT = "React"
-    DOCKER = "Docker"
 
 class ProjectRoleEnum(Enum):
     MANAGER = "Project Manager"

@@ -2,7 +2,8 @@ import dataclasses
 import uuid
 from typing import Set, Dict, List
 
-from domain.project.enum import ProjectRoleEnum, StatusProjectEnum, TechnologyEnum
+from domain.project.enum import ProjectRoleEnum, StatusProjectEnum
+from domain.shared.enum import TechnologyEnum
 
 
 @dataclasses.dataclass(frozen=True)
@@ -63,19 +64,19 @@ class Project:
     def update(self, name: str | None, url_project: str | None,
                team_id: uuid.UUID, logo: str | None, description: str | None):
 
-        if name is None:
+        if name is not None:
             self.name = name
 
-        if url_project is None:
+        if url_project is not  None:
             self.url_project = url_project
 
-        if team_id is None:
+        if team_id is not None:
             self.team_id = team_id
 
-        if logo is None:
+        if logo is not None:
             self.logo = logo
 
-        if description is None:
+        if description is not None:
             self.description = description
 
     def get_participant(self, participant_id: uuid.UUID) -> ProjectParticipant | None:

@@ -1,7 +1,10 @@
-from pydantic import BaseModel, Field, HttpUrl
 import uuid
 from typing import Optional, Set, List
-from domain.project.enum import ProjectRoleEnum, TechnologyEnum, StatusProjectEnum
+
+from pydantic import BaseModel, Field, HttpUrl
+
+from domain.project.enum import ProjectRoleEnum, StatusProjectEnum
+from domain.shared.enum import TechnologyEnum
 
 
         ### BASE MODEL DTO  ###

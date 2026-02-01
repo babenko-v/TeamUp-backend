@@ -9,7 +9,8 @@ from application.projects.interfaces import IProjectRepository
 from infrastructure.database.models.projects import (Project as DBProject, ProjectParticipant as DBProjectParticipant,
                                                      TechnologyToProject as DBTechnologyToProject)
 from domain.project.model import Project as DomainProject, ProjectParticipant as DomainProjectParticipant
-from domain.project.enum import ProjectRoleEnum, TechnologyEnum, StatusProjectEnum
+from domain.project.enum import ProjectRoleEnum, StatusProjectEnum
+from domain.shared.enum import TechnologyEnum
 
 
 class ProjectRepository(IProjectRepository):
