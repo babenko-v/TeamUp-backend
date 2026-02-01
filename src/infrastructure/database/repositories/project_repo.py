@@ -11,6 +11,7 @@ from infrastructure.database.models.projects import (Project as DBProject, Proje
 from domain.project.model import Project as DomainProject, ProjectParticipant as DomainProjectParticipant
 from domain.project.enum import ProjectRoleEnum, StatusProjectEnum
 from domain.shared.enum import TechnologyEnum
+from domain.shared.value_object import TechValueObject
 
 
 class ProjectRepository(IProjectRepository):
@@ -95,6 +96,8 @@ class ProjectRepository(IProjectRepository):
 
         status_enum = StatusProjectEnum(db_project.status_id)
 
+        tech_profile = TechValueObject(description=db_project.description, technologies=stack_technologies)
+
         return DomainProject._reconstitute(
             id=db_project.id,
             name=db_project.name,
@@ -102,9 +105,8 @@ class ProjectRepository(IProjectRepository):
             team_id=db_project.team_id,
             url_project=getattr(db_project, 'url_project', None),
             logo=db_project.logo,
-            description=db_project.description,
+            tech_profile=tech_profile,
             participants=participants,
-            stack_technologies=stack_technologies
         )
 
 

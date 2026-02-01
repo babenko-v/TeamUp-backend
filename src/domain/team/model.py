@@ -27,7 +27,6 @@ class Team:
     @classmethod
     def _reconstitute(cls, id: uuid.UUID, name: str, description: str, logo: str,
                        members: Dict[uuid.UUID, TeamMember]):
-
         instance = cls.__new__(cls)
 
         instance.id = id
@@ -60,13 +59,13 @@ class Team:
 
     def update(self, name: str | None, description: str | None, logo: str | None):
 
-        if name is not None:
+        if name:
             self.name = name
 
-        if description is not None:
+        if description:
             self.description = description
 
-        if logo is not None:
+        if logo:
             self.logo = logo # Add logic to check logo using regex pattern
 
 

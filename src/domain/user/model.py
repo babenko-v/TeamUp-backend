@@ -31,33 +31,33 @@ class User:
                avatar_url: str | None, linkedin_url: str | None, github_url: str | None,
                platform_role: PlatformRoleEnum, status_user: StatusUserEnum):
 
-        if username is not None:
+        if username:
             if len(username.strip()) < 3:
                 raise ValueError("Username must be at least 3 characters long.")
             self.username = username.strip()
 
-        if avatar_url is not None:
+        if avatar_url:
             if not avatar_url.startswith(('http://', 'https://')):
                 raise ValueError("Invalid avatar URL format.")
             self.avatar_url = avatar_url
 
-        if email is not None:
+        if email:
             valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email)
             if valid:
                 self.email = email
             else:
                 raise ValueError("Invalid email address.")
 
-        if linkedin_url is not None:
+        if linkedin_url:
             self.linkedin_url = linkedin_url
 
-        if github_url is not None:
+        if github_url:
             self.github_url = github_url
 
-        if platform_role is not None:
+        if platform_role:
             self.platform_role = platform_role
 
-        if status_user is not None:
+        if status_user:
             self.status_user = status_user
 
 

@@ -1,10 +1,10 @@
 import dataclasses
 import uuid
-from typing import Set, Dict, List
+from typing import Set, Dict, List, Optional
 
 from domain.project.enum import ProjectRoleEnum, StatusProjectEnum
 from domain.shared.enum import TechnologyEnum
-
+from domain.shared.value_object import TechValueObject
 
 @dataclasses.dataclass(frozen=True)
 class ProjectParticipant:
@@ -13,41 +13,65 @@ class ProjectParticipant:
 
 
 class Project:
-    def __init__(self, id: uuid.UUID, name: str, status: StatusProjectEnum, team_id: uuid.UUID, manager_id: uuid.UUID,
-                 url_project: str | None, logo: str | None, description: str | None):
+    def __init__(
+        self,
+        id: uuid.UUID,
+        name: str,
+        status: StatusProjectEnum,
+        team_id: uuid.UUID,
+        manager_id: uuid.UUID,
+        url_project: Optional[str],
+        logo: Optional[str],
+        description: str,
+        initial_stack_technologies: Set[TechnologyEnum]
+    ):
         self.id = id
         self.name = name
-        self.description = description
         self.status = status
         self.logo = logo
         self.url_project = url_project
-
         self.team_id = team_id
 
-        self.stack_technologies: Set[TechnologyEnum] = set()
+        self.tech_profile = TechValueObject(
+            description=description,
+            technologies=initial_stack_technologies
+        )
+
         self._participants: Dict[uuid.UUID, ProjectParticipant] = {
             manager_id: ProjectParticipant(user_id=manager_id, roles={ProjectRoleEnum.MANAGER})
         }
 
     @classmethod
-    def _reconstitute(cls, id: uuid.UUID, name: str, status: StatusProjectEnum,
-                       participants: Dict[uuid.UUID, ProjectParticipant], url_project: str | None,
-                       team_id: uuid.UUID, logo: str = None, description: str = None, stack_technologies: Set[TechnologyEnum] = None):
-
+    def _reconstitute(
+        cls,
+        id: uuid.UUID,
+        name: str,
+        status: StatusProjectEnum,
+        participants: Dict[uuid.UUID, ProjectParticipant],
+        url_project: Optional[str],
+        team_id: uuid.UUID,
+        logo: Optional[str],
+        tech_profile: TechValueObject
+    ):
         instance = cls.__new__(cls)
-
         instance.id = id
         instance.name = name
-        instance.description = description
         instance.status = status
         instance.logo = logo
         instance.url_project = url_project
         instance.team_id = team_id
-
         instance._participants = participants
-        instance.stack_technologies = stack_technologies
-
+        instance.tech_profile = tech_profile
         return instance
+
+
+    @property
+    def description(self) -> str:
+        return self.tech_profile.description
+
+    @property
+    def stack_technologies(self) -> Set[TechnologyEnum]:
+        return self.tech_profile.technologies
 
     @property
     def manager_id(self) -> uuid.UUID | None:
@@ -61,23 +85,21 @@ class Project:
         return list(self._participants.values())
 
 
-    def update(self, name: str | None, url_project: str | None,
-               team_id: uuid.UUID, logo: str | None, description: str | None):
-
-        if name is not None:
+    def update(
+        self,
+        name: Optional[str] = None,
+        url_project: Optional[str] = None,
+        logo: Optional[str] = None,
+        description: Optional[str] = None
+    ):
+        if name:
             self.name = name
-
-        if url_project is not  None:
+        if url_project:
             self.url_project = url_project
-
-        if team_id is not None:
-            self.team_id = team_id
-
-        if logo is not None:
+        if logo:
             self.logo = logo
-
-        if description is not None:
-            self.description = description
+        if description:
+            self.tech_profile = self.tech_profile.with_description(description)
 
     def get_participant(self, participant_id: uuid.UUID) -> ProjectParticipant | None:
         return self._participants.get(participant_id)
@@ -117,25 +139,16 @@ class Project:
 
         del self._participants[user_id_to_remove]
 
-    def add_technology(self, technology: TechnologyEnum):
-        if len(self.stack_technologies) >= 10:
-            raise ValueError("Project cannot have more than 10 technologies.")
-        if technology in self.stack_technologies:
-            raise ValueError("Technology already exists in the project.")
 
-        self.stack_technologies.add(technology)
+    def add_technology(self, technology: TechnologyEnum):
+        self.tech_profile = self.tech_profile.with_add_tech(technology)
 
     def remove_technology(self, technology: TechnologyEnum):
-        if len(self.stack_technologies) == 1:
-            raise ValueError("Technology must have at least one technology.")
-
-        self.stack_technologies.discard(technology)
+        self.tech_profile = self.tech_profile.with_remove_tech(technology)
 
     def set_technologies(self, technologies: Set[TechnologyEnum]):
+        self.tech_profile = self.tech_profile.with_set_tech(technologies)
 
-        if len(technologies) > 10:
-            raise ValueError("Project cannot have more than 10 technologies.")
-        self.stack_technologies = technologies
 
     def assign_role_to_participant(self, user_id: uuid.UUID, role_to_add: ProjectRoleEnum):
         participant = self.get_participant(user_id)
