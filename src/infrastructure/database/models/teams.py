@@ -28,7 +28,8 @@ class Team(Base):
 
     logo = Column(String, nullable=True, unique=True)
 
-    team_member = relationship("TeamMember", back_populates="teams", cascade="all, delete-orphan")
+    members = relationship("TeamMember", back_populates="team", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="team")
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 

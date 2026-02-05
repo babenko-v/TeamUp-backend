@@ -38,13 +38,10 @@ class User(Base):
     status_id = Column(Integer, ForeignKey('status_user.id'))
     status = relationship("StatusUser", back_populates="users")
 
-    team_member = relationship("TeamMember", back_populates="users")
-
-    project_participant = relationship("ProjectParticipant", back_populates="users")
-
-    social_media = relationship("SocialMediaData", back_populates="users")
-
-    user_platform_role = relationship("UserPlatformRole", back_populates="users")
+    team_memberships = relationship("TeamMember", back_populates="user")
+    desired_projects = relationship("DesiredProject", back_populates="user")
+    social_media = relationship("SocialMediaData", back_populates="user", uselist=False)
+    platform_roles = relationship("UserPlatformRole", back_populates="user")
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 

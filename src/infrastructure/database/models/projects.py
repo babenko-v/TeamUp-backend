@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, PrimaryKeyConstraint
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from src.infrastructure.database.session import Base
@@ -25,7 +25,9 @@ class Technology(Base):
     __tablename__ = 'technology'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
-    project_links = relationship("TechnologyToProject", back_populates="technology")
+
+    project_tech = relationship("TechnologyToProject", back_populates="technology")
+    desired_project_tech = relationship("TechnologyToDesiredProject", back_populates="technologies")
 
 
 class Project(Base):
@@ -74,4 +76,4 @@ class TechnologyToProject(Base):
     technology_id = Column(Integer, ForeignKey('technology.id'))
 
     project = relationship("Project", back_populates="technologies")
-    technology = relationship("Technology", back_populates="project_links")
+    technology = relationship("Technology", back_populates="project_tech")
